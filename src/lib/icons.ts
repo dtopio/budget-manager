@@ -38,6 +38,7 @@ import {
   Briefcase,
   Scissors,
   Sparkles,
+  HardDrive,
   type LucideIcon,
 } from "lucide-react";
 
@@ -81,6 +82,7 @@ export const iconMap: Record<string, LucideIcon> = {
   Briefcase,
   Scissors,
   Sparkles,
+  HardDrive,
 };
 
 export function getIcon(name: string): LucideIcon {

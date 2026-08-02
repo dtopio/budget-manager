@@ -8,6 +8,7 @@ export const SUBSCRIPTION_LABELS: { name: string; icon: string }[] = [
   { name: "Internet", icon: "Wifi" },
   { name: "Phone", icon: "Smartphone" },
   { name: "iCloud", icon: "Cloud" },
+  { name: "Google One", icon: "HardDrive" },
   { name: "Amazon Prime", icon: "ShoppingBag" },
   { name: "Gym", icon: "Dumbbell" },
   { name: "Gaming", icon: "Gamepad2" },
