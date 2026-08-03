@@ -42,7 +42,9 @@ export function AddTransactionDialog({
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [submitting, setSubmitting] = useState(false);
 
-  const filteredCategories = categories.filter((c) => c.type === type);
+  const filteredCategories = categories.filter(
+    (c) => c.type === (type === "REIMBURSEMENT" ? "EXPENSE" : type)
+  );
   const selectedCategory = filteredCategories.find((c) => c.id === categoryId);
   const showSubscriptionPicker = isSubscriptionCategory(selectedCategory?.name);
 
@@ -66,7 +68,9 @@ export function AddTransactionDialog({
         }),
       });
       if (!res.ok) throw new Error("Failed to save");
-      toast.success(`${type === "INCOME" ? "Income" : "Expense"} added`);
+      const typeLabel =
+        type === "INCOME" ? "Income" : type === "REIMBURSEMENT" ? "Reimbursement" : "Expense";
+      toast.success(`${typeLabel} added`);
       setAmount("");
       setNote("");
       setCategoryId("");
@@ -105,6 +109,9 @@ export function AddTransactionDialog({
               <TabsTrigger value="INCOME" className="flex-1">
                 Income
               </TabsTrigger>
+              <TabsTrigger value="REIMBURSEMENT" className="flex-1">
+                Reimbursement
+              </TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -123,7 +130,7 @@ export function AddTransactionDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Category</Label>
+            <Label>{type === "REIMBURSEMENT" ? "What was this for? (optional)" : "Category"}</Label>
             <Select value={categoryId} onValueChange={(v) => setCategoryId(v ?? "")}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose a category">
@@ -151,6 +158,12 @@ export function AddTransactionDialog({
                 })}
               </SelectContent>
             </Select>
+            {type === "REIMBURSEMENT" && (
+              <p className="text-xs text-muted-foreground">
+                Linking an expense category offsets that category&apos;s spending instead of
+                just padding your balance.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

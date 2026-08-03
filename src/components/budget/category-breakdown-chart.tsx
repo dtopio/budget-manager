@@ -8,8 +8,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DailySpendDialog } from "@/components/budget/daily-spend-dialog";
 import { formatCurrency } from "@/lib/format";
-import type { CategoryBreakdown } from "@/lib/types";
+import type { CategoryBreakdown, Transaction } from "@/lib/types";
 
 function CustomTooltip({
   active,
@@ -38,15 +39,22 @@ function CustomTooltip({
 
 export function CategoryBreakdownChart({
   data,
+  month,
+  transactions,
 }: {
   data: CategoryBreakdown[];
+  month: Date;
+  transactions: Transaction[];
 }) {
   const total = data.reduce((sum, d) => sum + d.total, 0);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Spending by Category</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Spending by Category</CardTitle>
+          <DailySpendDialog month={month} transactions={transactions} />
+        </div>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (

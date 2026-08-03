@@ -15,6 +15,12 @@ import { SubscriptionsTab } from "@/components/budget/subscriptions-tab";
 import { AddTransactionDialog } from "@/components/budget/add-transaction-dialog";
 import { AddRecurringDialog } from "@/components/budget/add-recurring-dialog";
 import { MonthPicker } from "@/components/budget/month-picker";
+import {
+  SummaryCardsSkeleton,
+  ChartCardSkeleton,
+  EnvelopesCardSkeleton,
+  ListCardSkeleton,
+} from "@/components/budget/skeletons";
 import type { Category, RecurringTransaction, Summary, Transaction } from "@/lib/types";
 
 export default function Home() {
@@ -78,7 +84,7 @@ export default function Home() {
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-        <SummaryCards summary={summary} />
+        {loading ? <SummaryCardsSkeleton /> : <SummaryCards summary={summary} />}
 
         <Tabs defaultValue="overview">
           <TabsList>
@@ -89,30 +95,62 @@ export default function Home() {
           </TabsList>
 
           <TabsContent value="overview" className="mt-4 space-y-6">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <CategoryBreakdownChart data={summary?.byCategory ?? []} />
-              <TrendChart data={summary?.trend ?? []} />
-            </div>
-            <FiftyThirtyTwentyCard summary={summary} />
-            <TransactionList transactions={transactions} onChanged={loadData} />
+            {loading ? (
+              <>
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  <ChartCardSkeleton />
+                  <ChartCardSkeleton />
+                </div>
+                <EnvelopesCardSkeleton />
+                <ListCardSkeleton rows={6} />
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  <CategoryBreakdownChart
+                    data={summary?.byCategory ?? []}
+                    month={month}
+                    transactions={transactions}
+                  />
+                  <TrendChart data={summary?.trend ?? []} />
+                </div>
+                <FiftyThirtyTwentyCard summary={summary} />
+                <TransactionList transactions={transactions} onChanged={loadData} />
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="recurring" className="mt-4">
-            <RecurringList recurring={recurring} categories={categories} onChanged={loadData} />
+            {loading ? (
+              <ListCardSkeleton rows={5} />
+            ) : (
+              <RecurringList recurring={recurring} categories={categories} onChanged={loadData} />
+            )}
           </TabsContent>
 
           <TabsContent value="subscriptions" className="mt-4">
-            <SubscriptionsTab recurring={recurring} categories={categories} onChanged={loadData} />
+            {loading ? (
+              <ListCardSkeleton rows={5} />
+            ) : (
+              <SubscriptionsTab
+                recurring={recurring}
+                categories={categories}
+                onChanged={loadData}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="categories" className="mt-4">
-            <CategoryManager categories={categories} onChanged={loadData} />
+            {loading ? (
+              <div className="space-y-6">
+                <ListCardSkeleton rows={4} />
+                <ListCardSkeleton rows={4} />
+              </div>
+            ) : (
+              <CategoryManager categories={categories} onChanged={loadData} />
+            )}
           </TabsContent>
         </Tabs>
-
-        {loading && (
-          <p className="text-center text-xs text-muted-foreground">Loading...</p>
-        )}
       </main>
     </div>
   );

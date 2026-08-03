@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { format } from "date-fns";
+import { ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format";
@@ -102,7 +104,49 @@ function subscriptionIcon(label: string | null) {
   return SUBSCRIPTION_LABELS.find((s) => s.name === label)?.icon;
 }
 
-function UpcomingList({ items }: { items: Summary["upcomingItems"] }) {
+function categoryGlyph(icon: string, color: string) {
+  const Icon = getIcon(icon);
+  return (
+    <span
+      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+      style={{ backgroundColor: `${color}1a` }}
+    >
+      <Icon className="h-3 w-3" style={{ color }} />
+    </span>
+  );
+}
+
+type UpcomingItem = Summary["upcomingItems"][number];
+
+function upcomingDisplayName(item: UpcomingItem) {
+  const isSub = isSubscriptionCategory(item.categoryName);
+  const { label, detail } = parseSubscriptionLabel(item.note);
+  const subIcon = isSub ? subscriptionIcon(label) : undefined;
+  return {
+    name: isSub && label ? label : item.categoryName ?? "Uncategorized",
+    detail: isSub ? detail : null,
+    icon: subIcon ?? item.categoryIcon ?? "Wallet",
+    color: item.categoryColor ?? "#64748b",
+  };
+}
+
+function groupUpcoming(items: UpcomingItem[]) {
+  const groups: { key: string; items: UpcomingItem[] }[] = [];
+  const byKey = new Map<string, { key: string; items: UpcomingItem[] }>();
+  for (const item of items) {
+    const { name } = upcomingDisplayName(item);
+    let group = byKey.get(name);
+    if (!group) {
+      group = { key: name, items: [] };
+      byKey.set(name, group);
+      groups.push(group);
+    }
+    group.items.push(item);
+  }
+  return groups;
+}
+
+function UpcomingList({ items }: { items: UpcomingItem[] }) {
   if (items.length === 0) return null;
 
   return (
@@ -110,37 +154,104 @@ function UpcomingList({ items }: { items: Summary["upcomingItems"] }) {
       <p className="text-xs font-medium text-muted-foreground">
         Upcoming this month (already counted above)
       </p>
-      <ul className="space-y-1.5">
-        {items.map((item, i) => {
-          const isSub = isSubscriptionCategory(item.categoryName);
-          const { label, detail } = parseSubscriptionLabel(item.note);
-          const subIcon = isSub ? subscriptionIcon(label) : undefined;
-          const Icon = getIcon(subIcon ?? item.categoryIcon ?? "Wallet");
-          const color = item.categoryColor ?? "#64748b";
-          const displayName = isSub && label ? label : item.categoryName ?? "Uncategorized";
+      <ul className="divide-y divide-border/60">
+        {groupUpcoming(items).map((group) => {
+          const first = group.items[0];
+          const { name, detail, icon, color } = upcomingDisplayName(first);
+          const total = group.items.reduce((sum, item) => sum + item.amount, 0);
+
+          if (group.items.length === 1) {
+            return (
+              <li key={group.key} className="flex items-center gap-2.5 py-1.5 text-sm">
+                {categoryGlyph(icon, color)}
+                <span className="min-w-0 flex-1 truncate">
+                  {name}
+                  {detail && <span className="text-muted-foreground"> · {detail}</span>}
+                </span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {format(new Date(first.date), "MMM d")}
+                </span>
+                <span className="w-14 shrink-0 text-right tabular-nums font-medium">
+                  {formatCurrency(first.amount)}
+                </span>
+                <span className="h-3.5 w-3.5 shrink-0" />
+              </li>
+            );
+          }
+
+          const sorted = [...group.items].sort((a, b) => a.date.localeCompare(b.date));
           return (
-            <li key={`${item.id}-${item.date}-${i}`} className="flex items-center gap-2.5 text-sm">
-              <span
-                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
-                style={{ backgroundColor: `${color}1a` }}
-              >
-                <Icon className="h-3 w-3" style={{ color }} />
-              </span>
-              <span className="min-w-0 flex-1 truncate">
-                {displayName}
-                {detail && <span className="text-muted-foreground"> · {detail}</span>}
-              </span>
-              <span className="shrink-0 text-xs text-muted-foreground">
-                {format(new Date(item.date), "MMM d")}
-              </span>
-              <span className="shrink-0 tabular-nums font-medium">
-                {formatCurrency(item.amount)}
-              </span>
-            </li>
+            <UpcomingGroupRow
+              key={group.key}
+              name={name}
+              icon={icon}
+              color={color}
+              total={total}
+              items={sorted}
+            />
           );
         })}
       </ul>
     </div>
+  );
+}
+
+function UpcomingGroupRow({
+  name,
+  icon,
+  color,
+  total,
+  items,
+}: {
+  name: string;
+  icon: string;
+  color: string;
+  total: number;
+  items: UpcomingItem[];
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <li className="py-1.5 text-sm">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center gap-2.5 text-left"
+      >
+        {categoryGlyph(icon, color)}
+        <span className="min-w-0 flex-1 truncate">
+          {name}
+          <span className="ml-1.5 text-xs text-muted-foreground">×{items.length}</span>
+        </span>
+        <span className="shrink-0 text-xs text-muted-foreground">
+          Next {format(new Date(items[0].date), "MMM d")}
+        </span>
+        <span className="w-14 shrink-0 text-right tabular-nums font-medium">
+          {formatCurrency(total)}
+        </span>
+        <ChevronDown
+          className={cn(
+            "h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform",
+            expanded && "rotate-180"
+          )}
+        />
+      </button>
+      {expanded && (
+        <ul className="mt-1.5 ml-[2.125rem] space-y-1 border-l border-border/60 pl-3">
+          {items.map((item, i) => (
+            <li
+              key={`${item.id}-${item.date}-${i}`}
+              className="flex items-center gap-2 text-xs text-muted-foreground"
+            >
+              <span className="min-w-0 flex-1 truncate">
+                {format(new Date(item.date), "MMM d")}
+              </span>
+              <span className="shrink-0 tabular-nums">{formatCurrency(item.amount)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </li>
   );
 }
 

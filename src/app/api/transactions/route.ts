@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
           }
         : {}),
       ...(categoryId ? { categoryId } : {}),
-      ...(type ? { type: type as "INCOME" | "EXPENSE" } : {}),
+      ...(type ? { type: type as "INCOME" | "EXPENSE" | "REIMBURSEMENT" } : {}),
     },
     include: { category: true },
     orderBy: { date: "desc" },

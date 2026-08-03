@@ -1,4 +1,4 @@
-export type TransactionType = "INCOME" | "EXPENSE";
+export type TransactionType = "INCOME" | "EXPENSE" | "REIMBURSEMENT";
 export type RecurrenceFrequency = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
 export type BudgetGroup = "NEEDS" | "WANTS" | "SAVINGS";
 
@@ -48,6 +48,7 @@ export interface Summary {
   month: string;
   totalIncome: number;
   totalExpense: number;
+  totalReimbursement: number;
   balance: number;
   byCategory: CategoryBreakdown[];
   trend: { month: string; income: number; expense: number }[];
