@@ -13,6 +13,7 @@ datasource db {
 enum TransactionType {
   INCOME
   EXPENSE
+  REIMBURSEMENT
 }
 
 enum RecurrenceFrequency {

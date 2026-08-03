@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
 
   let totalIncome = 0;
   let totalExpense = 0;
+  let totalReimbursement = 0;
   const byCategory = new Map<
     string,
     { categoryId: string | null; name: string; color: string; total: number }
@@ -28,24 +29,55 @@ export async function GET(req: NextRequest) {
     SAVINGS: 0,
   };
 
+  function adjustCategory(
+    categoryId: string | null,
+    name: string,
+    color: string,
+    group: "NEEDS" | "WANTS" | "SAVINGS" | null | undefined,
+    delta: number
+  ) {
+    const key = categoryId ?? "uncategorized";
+    const existing = byCategory.get(key);
+    if (existing) {
+      existing.total += delta;
+    } else {
+      byCategory.set(key, { categoryId, name, color, total: delta });
+    }
+    if (group) {
+      groupTotals[group] += delta;
+    }
+  }
+
+  // A reimbursement linked to an expense category directly offsets that
+  // category's spend (net accounting), so it must be applied after all
+  // expenses are tallied, regardless of row order from the database.
+  const reimbursements: typeof transactions = [];
+
   for (const t of transactions) {
     const amount = Number(t.amount);
     if (t.type === "INCOME") {
       totalIncome += amount;
+    } else if (t.type === "REIMBURSEMENT") {
+      reimbursements.push(t);
     } else {
       totalExpense += amount;
-      const key = t.categoryId ?? "uncategorized";
-      const existing = byCategory.get(key);
-      const name = t.category?.name ?? "Uncategorized";
-      const color = t.category?.color ?? "#64748b";
-      if (existing) {
-        existing.total += amount;
-      } else {
-        byCategory.set(key, { categoryId: t.categoryId, name, color, total: amount });
-      }
-      if (t.category?.group) {
-        groupTotals[t.category.group] += amount;
-      }
+      adjustCategory(
+        t.categoryId,
+        t.category?.name ?? "Uncategorized",
+        t.category?.color ?? "#64748b",
+        t.category?.group,
+        amount
+      );
+    }
+  }
+
+  for (const t of reimbursements) {
+    const amount = Number(t.amount);
+    if (t.categoryId && t.category?.type === "EXPENSE") {
+      totalExpense -= amount;
+      adjustCategory(t.categoryId, t.category.name, t.category.color, t.category.group, -amount);
+    } else {
+      totalReimbursement += amount;
     }
   }
 
@@ -136,12 +168,17 @@ export async function GET(req: NextRequest) {
     const mTo = endOfMonth(monthDate);
     const monthTx = await prisma.transaction.findMany({
       where: { date: { gte: mFrom, lte: mTo } },
+      include: { category: true },
     });
     let income = 0;
     let expense = 0;
     for (const t of monthTx) {
-      if (t.type === "INCOME") income += Number(t.amount);
-      else expense += Number(t.amount);
+      const amount = Number(t.amount);
+      if (t.type === "INCOME") income += amount;
+      else if (t.type === "EXPENSE") expense += amount;
+      else if (t.type === "REIMBURSEMENT" && t.categoryId && t.category?.type === "EXPENSE") {
+        expense -= amount;
+      }
     }
     trend.push({ month: format(monthDate, "MMM"), income, expense });
   }
@@ -150,8 +187,11 @@ export async function GET(req: NextRequest) {
     month: format(anchor, "yyyy-MM"),
     totalIncome,
     totalExpense,
-    balance: totalIncome - totalExpense,
-    byCategory: Array.from(byCategory.values()).sort((a, b) => b.total - a.total),
+    totalReimbursement,
+    balance: totalIncome - totalExpense + totalReimbursement,
+    byCategory: Array.from(byCategory.values())
+      .filter((c) => c.total > 0)
+      .sort((a, b) => b.total - a.total),
     trend,
     budgetGroups,
     upcomingIncome,

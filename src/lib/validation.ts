@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const transactionTypeEnum = z.enum(["INCOME", "EXPENSE"]);
+export const transactionTypeEnum = z.enum(["INCOME", "EXPENSE", "REIMBURSEMENT"]);
 export const recurrenceFrequencyEnum = z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]);
 export const budgetGroupEnum = z.enum(["NEEDS", "WANTS", "SAVINGS"]);
 

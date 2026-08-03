@@ -38,7 +38,11 @@ import {
   Briefcase,
   Scissors,
   Sparkles,
+<<<<<<< HEAD
   HardDrive,
+=======
+  Undo2,
+>>>>>>> b2025b811463bee5d4b63055c0e6668908de20af
   type LucideIcon,
 } from "lucide-react";
 
@@ -82,7 +86,11 @@ export const iconMap: Record<string, LucideIcon> = {
   Briefcase,
   Scissors,
   Sparkles,
+<<<<<<< HEAD
   HardDrive,
+=======
+  Undo2,
+>>>>>>> b2025b811463bee5d4b63055c0e6668908de20af
 };
 
 export function getIcon(name: string): LucideIcon {
