@@ -75,4 +75,6 @@ model RecurringTransaction {
   transactions Transaction[]
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
+
+  @@index([active, nextRunDate])
 }

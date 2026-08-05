@@ -11,10 +11,29 @@ export async function GET(req: NextRequest) {
   const from = startOfMonth(anchor);
   const to = endOfMonth(anchor);
 
-  const transactions = await prisma.transaction.findMany({
-    where: { date: { gte: from, lte: to } },
-    include: { category: true },
+  const trendRanges = Array.from({ length: 6 }, (_, idx) => {
+    const monthDate = subMonths(anchor, 5 - idx);
+    return { monthDate, mFrom: startOfMonth(monthDate), mTo: endOfMonth(monthDate) };
   });
+
+  const [transactions, activeRecurring, trendTx] = await Promise.all([
+    prisma.transaction.findMany({
+      where: { date: { gte: from, lte: to } },
+      include: { category: true },
+    }),
+    prisma.recurringTransaction.findMany({
+      where: { active: true },
+      include: { category: true },
+    }),
+    Promise.all(
+      trendRanges.map(({ mFrom, mTo }) =>
+        prisma.transaction.findMany({
+          where: { date: { gte: mFrom, lte: mTo } },
+          include: { category: true },
+        })
+      )
+    ),
+  ]);
 
   let totalIncome = 0;
   let totalExpense = 0;
@@ -86,11 +105,6 @@ export async function GET(req: NextRequest) {
   // but they're committed spending — count them against the budget now rather than
   // waiting for the day to arrive. Anything due on/before "now" is already covered
   // by the actual-transactions query above, since /api/recurring/run runs first.
-  const activeRecurring = await prisma.recurringTransaction.findMany({
-    where: { active: true },
-    include: { category: true },
-  });
-
   const upcomingGroupTotals: Record<"NEEDS" | "WANTS" | "SAVINGS", number> = {
     NEEDS: 0,
     WANTS: 0,
@@ -161,18 +175,10 @@ export async function GET(req: NextRequest) {
   });
 
   // Last 6 months trend
-  const trend = [];
-  for (let i = 5; i >= 0; i--) {
-    const monthDate = subMonths(anchor, i);
-    const mFrom = startOfMonth(monthDate);
-    const mTo = endOfMonth(monthDate);
-    const monthTx = await prisma.transaction.findMany({
-      where: { date: { gte: mFrom, lte: mTo } },
-      include: { category: true },
-    });
+  const trend = trendRanges.map(({ monthDate }, idx) => {
     let income = 0;
     let expense = 0;
-    for (const t of monthTx) {
+    for (const t of trendTx[idx]) {
       const amount = Number(t.amount);
       if (t.type === "INCOME") income += amount;
       else if (t.type === "EXPENSE") expense += amount;
@@ -180,8 +186,8 @@ export async function GET(req: NextRequest) {
         expense -= amount;
       }
     }
-    trend.push({ month: format(monthDate, "MMM"), income, expense });
-  }
+    return { month: format(monthDate, "MMM"), income, expense };
+  });
 
   return NextResponse.json({
     month: format(anchor, "yyyy-MM"),

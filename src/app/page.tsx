@@ -38,16 +38,22 @@ export default function Home() {
     try {
       // Materialize any due recurring transactions before loading, so a rule that's
       // due today (including one just created) shows up as an actual transaction
-      // immediately rather than waiting for the next full page load.
-      await fetch("/api/recurring/run", { method: "POST" });
+      // immediately rather than waiting for the next full page load. Run it in
+      // parallel with the requests that don't depend on it (categories/recurring),
+      // and only block the transactions/summary fetches on its completion.
+      const runP = fetch("/api/recurring/run", { method: "POST" });
+      const categoriesP = fetch("/api/categories");
+      const recurringP = fetch("/api/recurring");
 
       const from = new Date(month.getFullYear(), month.getMonth(), 1).toISOString();
       const to = new Date(month.getFullYear(), month.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
+      await runP;
+
       const [categoriesRes, transactionsRes, recurringRes, summaryRes] = await Promise.all([
-        fetch("/api/categories"),
+        categoriesP,
         fetch(`/api/transactions?from=${from}&to=${to}`),
-        fetch("/api/recurring"),
+        recurringP,
         fetch(`/api/summary?month=${monthKey}`),
       ]);
 
