@@ -2,6 +2,7 @@
 // Stored as a "Name" prefix in the transaction note (e.g. "Spotify" or "Spotify · annual plan").
 export const SUBSCRIPTION_LABELS: { name: string; icon: string }[] = [
   { name: "Claude", icon: "Sparkles" },
+  { name: "Perplexity", icon: "Search" },
   { name: "Spotify", icon: "Music" },
   { name: "YouTube", icon: "SquarePlay" },
   { name: "Netflix", icon: "Tv" },
