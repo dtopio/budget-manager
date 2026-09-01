@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { getIcon } from "@/lib/icons";
 import { formatCurrency } from "@/lib/format";
+import { GLASS, GLASS_SHEEN } from "@/lib/glass";
+import { cn } from "@/lib/utils";
 import {
   SUBSCRIPTION_LABELS,
   isSubscriptionCategory,
@@ -78,7 +80,7 @@ export function SubscriptionsTab({
 
   return (
     <div className="space-y-6">
-      <Card className="relative overflow-hidden border-border/60 p-5 shadow-sm">
+      <Card className={cn("p-5", GLASS, GLASS_SHEEN)}>
         <div
           className="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full opacity-[0.14]"
           style={{ backgroundColor: "var(--transfer)" }}

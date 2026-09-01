@@ -1,0 +1,293 @@
+import { css, hexToOklch, mix, readableOn, withC, withL } from "@/lib/color";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEMES — the only file you need to touch to restyle the app.
+
+   Each theme is a handful of hex seeds. Everything else (muted text, borders,
+   hover states, glass surfaces, chart hues, the spending heatmap ramp) is derived
+   from them, so changing one hex below re-themes every screen consistently.
+
+   To add a theme: copy a block, change the hexes, done. It shows up in the picker
+   automatically.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export type Seeds = {
+  /** Page background. */
+  bg: string;
+  /** Cards, dialogs, popovers — the surfaces that sit on top of the background. */
+  surface: string;
+  /** Body text. */
+  fg: string;
+  /** Buttons, focus rings, the "selected" colour. */
+  primary: string;
+  /** Secondary highlight — used for soft tints and one of the two page glows. */
+  accent: string;
+};
+
+export type MoneySeeds = {
+  income: string;
+  expense: string;
+  transfer: string;
+  needs: string;
+  wants: string;
+  savings: string;
+};
+
+export type Theme = {
+  id: string;
+  label: string;
+  light: Seeds;
+  dark: Seeds;
+  /** Money colours, tuned per mode so they stay legible on both grounds. */
+  money: { light: MoneySeeds; dark: MoneySeeds };
+};
+
+export const THEMES: Theme[] = [
+  {
+    id: "classic",
+    label: "Classic",
+    light: {
+      bg: "#FAF9F7",
+      surface: "#FFFFFF",
+      fg: "#101010",
+      primary: "#4F46C8",
+      accent: "#6D63E0",
+    },
+    dark: {
+      bg: "#15161C",
+      surface: "#1E2028",
+      fg: "#F7F7F8",
+      primary: "#8B84F0",
+      accent: "#9C95F5",
+    },
+    money: {
+      light: {
+        income: "#0CA30C",
+        expense: "#D03B3B",
+        transfer: "#2A78D6",
+        needs: "#2A78D6",
+        wants: "#EB6834",
+        savings: "#1BAF7A",
+      },
+      dark: {
+        income: "#4ED44E",
+        expense: "#F0706F",
+        transfer: "#6CA8EC",
+        needs: "#6CA8EC",
+        wants: "#F5945F",
+        savings: "#4FD3A5",
+      },
+    },
+  },
+  {
+    id: "cobalt",
+    label: "Cobalt",
+    light: {
+      bg: "#E9F1FB",
+      surface: "#FFFFFF",
+      fg: "#132749",
+      primary: "#1E3A6E",
+      accent: "#F2A469",
+    },
+    dark: {
+      bg: "#0C1930",
+      surface: "#15294A",
+      fg: "#EAF1FB",
+      primary: "#7FA8E8",
+      accent: "#F2A469",
+    },
+    money: {
+      light: {
+        income: "#17886A",
+        expense: "#E4572E",
+        transfer: "#3E7BC8",
+        needs: "#3E7BC8",
+        wants: "#F2A469",
+        savings: "#17886A",
+      },
+      dark: {
+        income: "#4FCBA3",
+        expense: "#F58060",
+        transfer: "#7FA8E8",
+        needs: "#7FA8E8",
+        wants: "#F2A469",
+        savings: "#4FCBA3",
+      },
+    },
+  },
+  {
+    id: "mint",
+    label: "Mint",
+    light: {
+      bg: "#EBF2ED",
+      surface: "#FFFFFF",
+      fg: "#12322A",
+      primary: "#1C4B3C",
+      accent: "#9BD93A",
+    },
+    dark: {
+      bg: "#0E211C",
+      surface: "#17332B",
+      fg: "#EAF4EE",
+      primary: "#B9F24D",
+      accent: "#A78BFA",
+    },
+    money: {
+      light: {
+        income: "#2E9E6B",
+        expense: "#E4572E",
+        transfer: "#7C6BD8",
+        needs: "#7C6BD8",
+        wants: "#E4572E",
+        savings: "#2E9E6B",
+      },
+      dark: {
+        income: "#5FD79B",
+        expense: "#F58060",
+        transfer: "#A78BFA",
+        needs: "#A78BFA",
+        wants: "#F58060",
+        savings: "#5FD79B",
+      },
+    },
+  },
+  {
+    id: "violet",
+    label: "Violet",
+    light: {
+      bg: "#F1EDFD",
+      surface: "#FFFFFF",
+      fg: "#1B1235",
+      primary: "#5B3FE0",
+      accent: "#8B6BFF",
+    },
+    dark: {
+      bg: "#110B26",
+      surface: "#1C1442",
+      fg: "#F0ECFF",
+      primary: "#7C5CFF",
+      accent: "#A78BFA",
+    },
+    money: {
+      light: {
+        income: "#2FB57A",
+        expense: "#F2555A",
+        transfer: "#8B6BFF",
+        needs: "#8B6BFF",
+        wants: "#F2555A",
+        savings: "#2FB57A",
+      },
+      dark: {
+        income: "#4FD7A0",
+        expense: "#FF7B80",
+        transfer: "#A78BFA",
+        needs: "#A78BFA",
+        wants: "#FF9F6B",
+        savings: "#4FD7A0",
+      },
+    },
+  },
+];
+
+/* ─────────────────────────── derivation ─────────────────────────── */
+
+function tokens(seeds: Seeds, money: MoneySeeds, isDark: boolean) {
+  const bg = hexToOklch(seeds.bg);
+  const surface = hexToOklch(seeds.surface);
+  const fg = hexToOklch(seeds.fg);
+  const primary = hexToOklch(seeds.primary);
+  const accent = hexToOklch(seeds.accent);
+
+  // How far to push a surface toward the text colour for muted fills and borders.
+  const lift = (t: number) => mix(surface, fg, t);
+
+  const glassAlpha = isDark ? 0.55 : 0.62;
+  const entries: Record<string, string> = {
+    background: css(bg),
+    foreground: css(fg),
+    card: css(surface),
+    "card-foreground": css(fg),
+    popover: css(isDark ? withL(surface, surface.l + 0.02) : surface),
+    "popover-foreground": css(fg),
+
+    primary: css(primary),
+    "primary-foreground": css(readableOn(primary)),
+    secondary: css(lift(isDark ? 0.09 : 0.055)),
+    "secondary-foreground": css(fg),
+    muted: css(lift(isDark ? 0.08 : 0.05)),
+    "muted-foreground": css(mix(fg, bg, isDark ? 0.4 : 0.42)),
+    accent: css(isDark ? mix(surface, accent, 0.22) : mix(surface, accent, 0.16)),
+    "accent-foreground": css(
+      isDark ? withL(accent, Math.max(accent.l, 0.85)) : withL(accent, Math.min(accent.l, 0.4))
+    ),
+    destructive: css(hexToOklch(money.expense)),
+    border: css(lift(isDark ? 0.16 : 0.1)),
+    input: css(lift(isDark ? 0.2 : 0.14)),
+    ring: css(primary),
+
+    income: css(hexToOklch(money.income)),
+    expense: css(hexToOklch(money.expense)),
+    transfer: css(hexToOklch(money.transfer)),
+    needs: css(hexToOklch(money.needs)),
+    wants: css(hexToOklch(money.wants)),
+    savings: css(hexToOklch(money.savings)),
+
+    // Two soft washes behind the page, drawn from the theme's own hues.
+    "surface-glow-1": css(accent, isDark ? 0.16 : 0.2),
+    "surface-glow-2": css(primary, isDark ? 0.14 : 0.14),
+
+    // Liquid glass: a translucent surface, a bright top edge, and a hairline border.
+    "glass-bg": css(surface, glassAlpha),
+    "glass-border": isDark ? css(withC(withL(fg, 0.9), 0.01), 0.14) : css(fg, 0.08),
+    "glass-highlight": isDark ? css(withC(withL(fg, 0.95), 0.01), 0.1) : css(withL(surface, 1), 0.85),
+  };
+
+  return entries;
+}
+
+function block(selector: string, vars: Record<string, string>) {
+  const body = Object.entries(vars)
+    .map(([k, v]) => `  --${k}: ${v};`)
+    .join("\n");
+  return `${selector} {\n${body}\n}`;
+}
+
+/**
+ * Emits every theme as CSS custom properties. Rendered once into <head>, so switching
+ * themes is a single attribute flip on <html> — no recalculation, no re-render.
+ */
+export function buildThemeCss() {
+  const shared = block(":root", {
+    radius: "0.85rem",
+    "chart-1": "var(--needs)",
+    "chart-2": "var(--wants)",
+    "chart-3": "var(--savings)",
+    "chart-4": "var(--transfer)",
+    "chart-5": "var(--muted-foreground)",
+    sidebar: "var(--card)",
+    "sidebar-foreground": "var(--card-foreground)",
+    "sidebar-primary": "var(--primary)",
+    "sidebar-primary-foreground": "var(--primary-foreground)",
+    "sidebar-accent": "var(--accent)",
+    "sidebar-accent-foreground": "var(--accent-foreground)",
+    "sidebar-border": "var(--border)",
+    "sidebar-ring": "var(--ring)",
+  });
+
+  const themes = THEMES.flatMap((theme) => [
+    block(`[data-palette="${theme.id}"]`, tokens(theme.light, theme.money.light, false)),
+    block(`[data-palette="${theme.id}"].dark`, tokens(theme.dark, theme.money.dark, true)),
+  ]);
+
+  return [shared, ...themes].join("\n\n");
+}
+
+/** Swatches for the picker, straight from the seeds so they can never drift. */
+export const THEME_SWATCHES = THEMES.map((t) => ({
+  id: t.id,
+  label: t.label,
+  colors: [t.light.bg, t.light.primary, t.light.accent],
+}));
+
+export const THEME_IDS = THEMES.map((t) => t.id);
+export const DEFAULT_THEME = "classic";

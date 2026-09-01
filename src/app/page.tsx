@@ -16,6 +16,8 @@ import { AddTransactionDialog } from "@/components/budget/add-transaction-dialog
 import { AddRecurringDialog } from "@/components/budget/add-recurring-dialog";
 import { MonthPicker } from "@/components/budget/month-picker";
 import { ThemeToggle } from "@/components/budget/theme-toggle";
+import { GLASS_BAR } from "@/lib/glass";
+import { cn } from "@/lib/utils";
 import {
   SummaryCardsSkeleton,
   ChartCardSkeleton,
@@ -74,7 +76,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-md">
+      <header className={cn("sticky top-0 z-40 border-b", GLASS_BAR)}>
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/70 text-primary-foreground shadow-sm shadow-primary/30">

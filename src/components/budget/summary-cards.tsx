@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format";
 import { ArrowDownRight, ArrowUpRight, Wallet, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { GLASS, GLASS_SHEEN } from "@/lib/glass";
 import type { Summary } from "@/lib/types";
 
 function StatCard({
@@ -18,7 +19,7 @@ function StatCard({
   valueClassName?: string;
 }) {
   return (
-    <Card className="relative overflow-hidden border-border/60 p-5 shadow-sm transition-shadow hover:shadow-md">
+    <Card className={cn("p-5 transition-shadow hover:shadow-lg", GLASS, GLASS_SHEEN)}>
       <div
         className="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full opacity-[0.12]"
         style={{ backgroundColor: tint }}

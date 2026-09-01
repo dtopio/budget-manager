@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format";
 import { getIcon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { GLASS } from "@/lib/glass";
 import {
   SUBSCRIPTION_LABELS,
   isSubscriptionCategory,
@@ -54,7 +55,7 @@ function Envelope({
   const overBudget = remaining < 0;
 
   return (
-    <div className="space-y-2 rounded-xl border border-border/60 p-4">
+    <div className={cn("space-y-2 rounded-xl p-4", GLASS)}>
       <div className="flex items-center gap-2">
         <span
           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
