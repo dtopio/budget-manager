@@ -201,7 +201,10 @@ function tokens(seeds: Seeds, money: MoneySeeds, isDark: boolean) {
   // How far to push a surface toward the text colour for muted fills and borders.
   const lift = (t: number) => mix(surface, fg, t);
 
-  const glassAlpha = isDark ? 0.55 : 0.62;
+  // Low enough that the page's colour wash genuinely shows through the panel — at the
+  // near-opaque values this started at, the blur had nothing to reveal and the effect
+  // was invisible.
+  const glassAlpha = isDark ? 0.4 : 0.44;
   const entries: Record<string, string> = {
     background: css(bg),
     foreground: css(fg),
@@ -232,14 +235,21 @@ function tokens(seeds: Seeds, money: MoneySeeds, isDark: boolean) {
     wants: css(hexToOklch(money.wants)),
     savings: css(hexToOklch(money.savings)),
 
-    // Two soft washes behind the page, drawn from the theme's own hues.
-    "surface-glow-1": css(accent, isDark ? 0.16 : 0.2),
-    "surface-glow-2": css(primary, isDark ? 0.14 : 0.14),
+    // Colour washes behind the page. They are what the frosted panels blur, so they carry
+    // real saturation rather than being a barely-there tint.
+    "surface-glow-1": css(accent, isDark ? 0.3 : 0.4),
+    "surface-glow-2": css(primary, isDark ? 0.26 : 0.32),
+    "surface-glow-3": css(mix(accent, primary, 0.5), isDark ? 0.18 : 0.22),
 
     // Liquid glass: a translucent surface, a bright top edge, and a hairline border.
     "glass-bg": css(surface, glassAlpha),
-    "glass-border": isDark ? css(withC(withL(fg, 0.9), 0.01), 0.14) : css(fg, 0.08),
-    "glass-highlight": isDark ? css(withC(withL(fg, 0.95), 0.01), 0.1) : css(withL(surface, 1), 0.85),
+    "glass-border": isDark ? css(withC(withL(fg, 0.95), 0.01), 0.22) : css(withL(surface, 1), 0.9),
+    "glass-highlight": isDark
+      ? css(withC(withL(fg, 0.98), 0.01), 0.22)
+      : css(withL(surface, 1), 1),
+    // A second, dimmer edge for the bottom of a panel — glass catches light on top and
+    // shadow underneath; without it the panels read as flat translucent rectangles.
+    "glass-shade": isDark ? css(withL(bg, 0.06), 0.5) : css(fg, 0.06),
   };
 
   return entries;

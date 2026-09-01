@@ -55,6 +55,10 @@ model Transaction {
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
 
+  // One materialized transaction per recurring rule per occurrence. Makes the reconcile
+  // in /api/recurring/run idempotent at the database level, so concurrent runs can never
+  // double-charge regardless of how they interleave.
+  @@unique([recurringId, date])
   @@index([date])
   @@index([categoryId])
   @@index([type])

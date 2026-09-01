@@ -138,7 +138,7 @@ export function AddRecurringDialog({
           Add recurring
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? "Edit recurring transaction" : "Add recurring transaction"}

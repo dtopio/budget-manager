@@ -92,7 +92,7 @@ export function AddTransactionDialog({
         <Plus className="h-4 w-4" />
         Add transaction
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add transaction</DialogTitle>
         </DialogHeader>

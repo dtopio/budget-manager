@@ -98,7 +98,7 @@ export function CategoryDialog({
           Add category
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit category" : "Add category"}</DialogTitle>
         </DialogHeader>

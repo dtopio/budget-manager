@@ -202,7 +202,7 @@ export function DailySpendDialog({
       >
         <CalendarDays className="h-4 w-4 text-muted-foreground" />
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Daily spending — {format(month, "MMMM yyyy")}</DialogTitle>
         </DialogHeader>

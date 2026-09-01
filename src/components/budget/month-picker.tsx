@@ -22,7 +22,7 @@ function MonthGrid({
   const [year, setYear] = useState(month.getFullYear());
 
   return (
-    <div className="w-56">
+    <div className="w-64">
       <div className="mb-2 flex items-center justify-between">
         <Button
           variant="ghost"
@@ -52,7 +52,7 @@ function MonthGrid({
               type="button"
               onClick={() => onSelect(candidate)}
               className={cn(
-                "rounded-md px-2 py-1.5 text-sm transition-colors",
+                "rounded-md px-2 py-2 text-sm transition-colors",
                 selected
                   ? "bg-primary text-primary-foreground"
                   : "text-foreground hover:bg-accent"

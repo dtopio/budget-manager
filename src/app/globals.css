@@ -64,8 +64,9 @@
   body {
     @apply bg-background text-foreground;
     background-image:
-      radial-gradient(circle at 12% -5%, var(--surface-glow-2), transparent 45%),
-      radial-gradient(circle at 88% 108%, var(--surface-glow-1), transparent 55%);
+      radial-gradient(60rem 40rem at 8% -10%, var(--surface-glow-2), transparent 60%),
+      radial-gradient(50rem 38rem at 95% 8%, var(--surface-glow-3), transparent 60%),
+      radial-gradient(55rem 40rem at 85% 105%, var(--surface-glow-1), transparent 60%);
     background-attachment: fixed;
   }
   html {
