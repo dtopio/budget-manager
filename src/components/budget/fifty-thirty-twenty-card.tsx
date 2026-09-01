@@ -15,14 +15,23 @@ import {
 } from "@/lib/subscription-labels";
 import type { BudgetGroup, Summary } from "@/lib/types";
 
+// Colours come from the active palette's tokens so the envelopes restyle with the theme.
 const GROUP_META: Record<
   BudgetGroup,
   { label: string; color: string; description: string }
 > = {
-  NEEDS: { label: "Needs", color: "#2a78d6", description: "Rent, groceries, utilities…" },
-  WANTS: { label: "Wants", color: "#eb6834", description: "Dining out, subscriptions…" },
-  SAVINGS: { label: "Savings", color: "#1baf7a", description: "Set aside for the future" },
+  NEEDS: { label: "Needs", color: "var(--needs)", description: "Rent, groceries, utilities…" },
+  WANTS: { label: "Wants", color: "var(--wants)", description: "Dining out, subscriptions…" },
+  SAVINGS: { label: "Savings", color: "var(--savings)", description: "Set aside for the future" },
 };
+
+const FALLBACK_TINT = "var(--muted-foreground)";
+
+// Tokens are colour functions, not hex, so alpha has to come from color-mix rather
+// than an appended "1a"/"1f" suffix.
+function tint(color: string, pct: number) {
+  return `color-mix(in oklch, ${color} ${pct}%, transparent)`;
+}
 
 function Envelope({
   group,
@@ -49,7 +58,7 @@ function Envelope({
       <div className="flex items-center gap-2">
         <span
           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-          style={{ backgroundColor: `${meta.color}1f` }}
+          style={{ backgroundColor: tint(meta.color, 14) }}
         >
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: meta.color }} />
         </span>
@@ -61,7 +70,7 @@ function Envelope({
         <div
           className={cn(
             "text-2xl font-semibold tracking-tight tabular-nums",
-            overBudget && "text-[#d03b3b]"
+            overBudget && "text-expense"
           )}
         >
           {overBudget
@@ -78,7 +87,7 @@ function Envelope({
           className="absolute top-0 left-0 h-full rounded-full"
           style={{
             width: `${Math.min(actualPct, 100)}%`,
-            backgroundColor: overBudget ? "#d03b3b" : meta.color,
+            backgroundColor: overBudget ? "var(--expense)" : meta.color,
           }}
         />
         <div
@@ -86,7 +95,7 @@ function Envelope({
           style={{
             left: `${Math.min(actualPct, 100)}%`,
             width: `${Math.min(upcomingPct, 100 - Math.min(actualPct, 100))}%`,
-            backgroundColor: overBudget ? "#d03b3b" : meta.color,
+            backgroundColor: overBudget ? "var(--expense)" : meta.color,
           }}
         />
       </div>
@@ -109,7 +118,7 @@ function categoryGlyph(icon: string, color: string) {
   return (
     <span
       className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
-      style={{ backgroundColor: `${color}1a` }}
+      style={{ backgroundColor: tint(color, 12) }}
     >
       <Icon className="h-3 w-3" style={{ color }} />
     </span>
@@ -126,7 +135,7 @@ function upcomingDisplayName(item: UpcomingItem) {
     name: isSub && label ? label : item.categoryName ?? "Uncategorized",
     detail: isSub ? detail : null,
     icon: subIcon ?? item.categoryIcon ?? "Wallet",
-    color: item.categoryColor ?? "#64748b",
+    color: item.categoryColor ?? FALLBACK_TINT,
   };
 }
 
@@ -152,7 +161,7 @@ function UpcomingList({ items }: { items: UpcomingItem[] }) {
   return (
     <div className="space-y-2 border-t border-border/60 pt-3">
       <p className="text-xs font-medium text-muted-foreground">
-        Upcoming this month (already counted above)
+        Scheduled this month (already counted above)
       </p>
       <ul className="divide-y divide-border/60">
         {groupUpcoming(items).map((group) => {
@@ -267,7 +276,7 @@ export function FiftyThirtyTwentyCard({ summary }: { summary: Summary | null }) 
           50 / 30 / 20 envelopes
           {upcomingItems.length > 0 && (
             <Badge variant="secondary" className="text-[10px] font-normal">
-              {upcomingItems.length} upcoming
+              {upcomingItems.length} scheduled
             </Badge>
           )}
         </CardTitle>
@@ -281,8 +290,8 @@ export function FiftyThirtyTwentyCard({ summary }: { summary: Summary | null }) 
           <div className="space-y-4">
             <p className="text-xs text-muted-foreground">
               {formatCurrency(income)} income this month, split automatically. Spending —
-              including recurring bills due later this month — comes out of its envelope
-              right away.
+              including every recurring bill scheduled this month — comes out of its
+              envelope right away.
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {groups.map((g) => (

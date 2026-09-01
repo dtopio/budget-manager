@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -52,8 +53,14 @@ export function AddRecurringDialog({
   const [frequency, setFrequency] = useState<RecurrenceFrequency>(
     recurring?.frequency ?? "MONTHLY"
   );
+  // Stored dates are sliced from their ISO string; a fresh "today" is formatted in local
+  // time so it doesn't render as yesterday east of UTC.
   const [startDate, setStartDate] = useState(() =>
-    (recurring?.startDate ?? new Date().toISOString()).slice(0, 10)
+    recurring ? recurring.startDate.slice(0, 10) : format(new Date(), "yyyy-MM-dd")
+  );
+  // On edit, the meaningful date is the next occurrence, not the (historical) start.
+  const [nextRunDate, setNextRunDate] = useState(() =>
+    recurring ? recurring.nextRunDate.slice(0, 10) : format(new Date(), "yyyy-MM-dd")
   );
   const [submitting, setSubmitting] = useState(false);
 
@@ -68,7 +75,12 @@ export function AddRecurringDialog({
       setCategoryId(recurring?.categoryId ?? "");
       setNote(recurring?.note ?? "");
       setFrequency(recurring?.frequency ?? "MONTHLY");
-      setStartDate((recurring?.startDate ?? new Date().toISOString()).slice(0, 10));
+      setStartDate(
+        recurring ? recurring.startDate.slice(0, 10) : format(new Date(), "yyyy-MM-dd")
+      );
+      setNextRunDate(
+        recurring ? recurring.nextRunDate.slice(0, 10) : format(new Date(), "yyyy-MM-dd")
+      );
     }
     setOpen(next);
   }
@@ -92,7 +104,9 @@ export function AddRecurringDialog({
             categoryId: categoryId || null,
             note: note || null,
             frequency,
-            ...(isEdit ? {} : { startDate: new Date(startDate).toISOString() }),
+            ...(isEdit
+              ? { nextRunDate: new Date(nextRunDate).toISOString() }
+              : { startDate: new Date(startDate).toISOString() }),
           }),
         }
       );
@@ -215,13 +229,14 @@ export function AddRecurringDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="r-start">Start date</Label>
+              <Label htmlFor="r-start">{isEdit ? "Next date" : "Start date"}</Label>
               <Input
                 id="r-start"
                 type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                disabled={isEdit}
+                value={isEdit ? nextRunDate : startDate}
+                onChange={(e) =>
+                  isEdit ? setNextRunDate(e.target.value) : setStartDate(e.target.value)
+                }
               />
             </div>
           </div>

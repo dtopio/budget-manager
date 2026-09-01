@@ -22,14 +22,15 @@ function subscriptionIcon(label: string | null) {
 }
 
 function amountStyle(type: Transaction["type"]) {
-  if (type === "INCOME") return { sign: "+", color: "#0ca30c" };
-  if (type === "REIMBURSEMENT") return { sign: "+", color: "#2a78d6" };
-  return { sign: "-", color: "#0b0b0b" };
+  if (type === "INCOME") return { sign: "+", color: "var(--income)" };
+  if (type === "REIMBURSEMENT") return { sign: "+", color: "var(--transfer)" };
+  return { sign: "-", color: "var(--foreground)" };
 }
 
 function fallbackDisplay(type: Transaction["type"]) {
-  if (type === "REIMBURSEMENT") return { name: "Reimbursement", icon: "Undo2", color: "#2a78d6" };
-  return { name: "Uncategorized", icon: "Wallet", color: "#64748b" };
+  if (type === "REIMBURSEMENT")
+    return { name: "Reimbursement", icon: "Undo2", color: "var(--transfer)" };
+  return { name: "Uncategorized", icon: "Wallet", color: "var(--muted-foreground)" };
 }
 
 function dayLabel(date: Date) {
@@ -58,7 +59,7 @@ function categoryGlyph(iconName: string, color: string) {
   return (
     <span
       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-      style={{ backgroundColor: `${color}1a` }}
+      style={{ backgroundColor: `color-mix(in oklch, ${color} 12%, transparent)` }}
     >
       <Icon className="h-4 w-4" style={{ color }} />
     </span>
@@ -222,7 +223,7 @@ export function TransactionList({
                         >
                           <span
                             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-                            style={{ backgroundColor: `${color}1a` }}
+                            style={{ backgroundColor: `color-mix(in oklch, ${color} 12%, transparent)` }}
                           >
                             <SingleIcon className="h-4 w-4" style={{ color }} />
                           </span>

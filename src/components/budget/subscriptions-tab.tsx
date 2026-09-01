@@ -79,7 +79,10 @@ export function SubscriptionsTab({
   return (
     <div className="space-y-6">
       <Card className="relative overflow-hidden border-border/60 p-5 shadow-sm">
-        <div className="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full bg-[#4a3aa7] opacity-[0.12]" />
+        <div
+          className="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full opacity-[0.14]"
+          style={{ backgroundColor: "var(--transfer)" }}
+        />
         <span className="text-sm font-medium text-muted-foreground">
           Active subscriptions, normalized to monthly
         </span>
@@ -106,13 +109,15 @@ export function SubscriptionsTab({
                 const { label, detail } = parseSubscriptionLabel(r.note);
                 const icon = subscriptionIcon(label) ?? r.category?.icon ?? "Repeat";
                 const Icon = getIcon(icon);
-                const color = r.category?.color ?? "#64748b";
+                const color = r.category?.color ?? "var(--muted-foreground)";
                 const monthlyCost = Number(r.amount) * MONTHLY_EQUIVALENT[r.frequency];
                 return (
                   <li key={r.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
                     <span
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-                      style={{ backgroundColor: `${color}1a` }}
+                      style={{
+                        backgroundColor: `color-mix(in oklch, ${color} 12%, transparent)`,
+                      }}
                     >
                       <Icon className="h-4.5 w-4.5" style={{ color }} />
                     </span>

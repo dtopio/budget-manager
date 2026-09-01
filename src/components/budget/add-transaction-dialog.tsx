@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -39,7 +40,9 @@ export function AddTransactionDialog({
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [note, setNote] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  // Local calendar day, not UTC: toISOString() would show yesterday for anyone east of
+  // UTC before their offset has elapsed (e.g. 02:00 in UTC+7).
+  const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const [submitting, setSubmitting] = useState(false);
 
   const filteredCategories = categories.filter(

@@ -44,4 +44,7 @@ const recurringBase = z.object({
   active: z.boolean().optional(),
 });
 export const recurringSchema = recurringBase;
-export const recurringUpdateSchema = recurringBase.partial();
+// `nextRunDate` is only editable on PATCH — on create it is derived from `startDate`.
+export const recurringUpdateSchema = recurringBase
+  .extend({ nextRunDate: z.coerce.date() })
+  .partial();

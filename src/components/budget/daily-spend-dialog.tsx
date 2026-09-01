@@ -25,7 +25,32 @@ import { cn } from "@/lib/utils";
 import type { Transaction } from "@/lib/types";
 
 const WEEKDAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-const HEAT_COLOR = "#d03b3b";
+
+// Discrete steps read far better than a continuous ramp: neighbouring days become
+// comparable at a glance instead of blending into each other. Alpha is baked into the
+// background colour rather than set via `opacity` on the cell, which would fade the
+// label along with the tint and make the lightest days unreadable.
+const HEAT_STEPS = [
+  { bg: "color-mix(in oklch, var(--expense) 12%, transparent)", onDark: false },
+  { bg: "color-mix(in oklch, var(--expense) 30%, transparent)", onDark: false },
+  { bg: "color-mix(in oklch, var(--expense) 58%, transparent)", onDark: true },
+  { bg: "color-mix(in oklch, var(--expense) 85%, transparent)", onDark: true },
+];
+
+function heatStep(net: number, maxNet: number) {
+  if (net <= 0 || maxNet <= 0) return null;
+  const ratio = net / maxNet;
+  if (ratio <= 0.25) return HEAT_STEPS[0];
+  if (ratio <= 0.5) return HEAT_STEPS[1];
+  if (ratio <= 0.75) return HEAT_STEPS[2];
+  return HEAT_STEPS[3];
+}
+
+// Cells are small — whole dollars keep the grid scannable; the tooltip has exact figures.
+function compactAmount(net: number) {
+  if (net >= 1000) return `$${(net / 1000).toFixed(1)}k`;
+  return `$${Math.round(net)}`;
+}
 
 type DaySpend = { net: number; items: Transaction[] };
 
@@ -50,33 +75,35 @@ function dailySpend(transactions: Transaction[]) {
   return map;
 }
 
-function DayCell({ date, inMonth, spend, maxNet }: {
+function DayCell({ date, inMonth, spend, maxNet, flipTooltip }: {
   date: Date;
   inMonth: boolean;
   spend: DaySpend | undefined;
   maxNet: number;
+  flipTooltip: boolean;
 }) {
   const net = spend?.net ?? 0;
-  const intensity = maxNet > 0 && net > 0 ? Math.min(net / maxNet, 1) : 0;
+  const step = inMonth ? heatStep(net, maxNet) : null;
+  const today = isToday(date) && inMonth;
 
   return (
     <div className="group relative">
       <div
         className={cn(
-          "flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border text-xs",
-          inMonth ? "border-border/60" : "border-transparent text-muted-foreground/40",
-          isToday(date) && inMonth && "ring-1 ring-primary/60"
+          "flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border text-xs transition-transform",
+          step ? "border-transparent" : "border-border/60",
+          !inMonth && "border-transparent bg-transparent",
+          spend && inMonth && "group-hover:scale-105",
+          today && "ring-2 ring-primary ring-offset-1 ring-offset-background"
         )}
-        style={
-          inMonth && intensity > 0
-            ? { backgroundColor: HEAT_COLOR, opacity: 0.12 + intensity * 0.68 }
-            : undefined
-        }
+        style={step ? { backgroundColor: step.bg } : undefined}
       >
         <span
           className={cn(
-            "font-medium",
-            inMonth && intensity > 0.35 ? "text-white" : "text-foreground"
+            "font-medium leading-none",
+            !inMonth && "text-muted-foreground/35",
+            inMonth && step?.onDark && "text-white",
+            inMonth && !step?.onDark && "text-foreground"
           )}
         >
           {format(date, "d")}
@@ -84,21 +111,31 @@ function DayCell({ date, inMonth, spend, maxNet }: {
         {inMonth && net > 0 && (
           <span
             className={cn(
-              "tabular-nums",
-              intensity > 0.35 ? "text-white/90" : "text-muted-foreground"
+              "leading-none tabular-nums",
+              step?.onDark ? "text-white/85" : "text-muted-foreground"
             )}
           >
-            {formatCurrency(net)}
+            {compactAmount(net)}
           </span>
         )}
       </div>
 
       {inMonth && spend && spend.items.length > 0 && (
-        <div className="pointer-events-none absolute top-full left-1/2 z-50 mt-1.5 w-48 -translate-x-1/2 rounded-md border bg-popover p-2 text-xs opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-          <p className="mb-1 font-medium text-popover-foreground">
-            {format(date, "EEEE, MMM d")}
-          </p>
-          <ul className="max-h-32 space-y-0.5 overflow-y-auto">
+        <div
+          className={cn(
+            "pointer-events-none absolute left-1/2 z-50 w-52 -translate-x-1/2 rounded-lg border bg-popover p-2.5 text-xs opacity-0 shadow-lg transition-opacity group-hover:opacity-100",
+            flipTooltip ? "bottom-full mb-1.5" : "top-full mt-1.5"
+          )}
+        >
+          <div className="mb-1.5 flex items-baseline justify-between gap-2 border-b pb-1.5">
+            <p className="font-medium text-popover-foreground">
+              {format(date, "EEE, MMM d")}
+            </p>
+            <p className="shrink-0 font-medium tabular-nums text-popover-foreground">
+              {formatCurrency(net)}
+            </p>
+          </div>
+          <ul className="max-h-32 space-y-1 overflow-y-auto">
             {spend.items.map((t) => (
               <li key={t.id} className="flex items-center justify-between gap-2 text-muted-foreground">
                 <span className="min-w-0 truncate">
@@ -114,6 +151,15 @@ function DayCell({ date, inMonth, spend, maxNet }: {
           </ul>
         </div>
       )}
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border/60 px-2.5 py-2">
+      <div className="truncate text-[10px] text-muted-foreground">{label}</div>
+      <div className="mt-0.5 text-sm font-semibold tabular-nums">{value}</div>
     </div>
   );
 }
@@ -136,13 +182,18 @@ export function DailySpendDialog({
   });
 
   let maxNet = 0;
+  let monthTotal = 0;
+  let activeDays = 0;
   let topDay: { date: string; net: number } | null = null;
   for (const [key, spend] of spendByDay) {
     if (spend.net > maxNet) maxNet = spend.net;
-    if (spend.net > 0 && (!topDay || spend.net > topDay.net)) {
-      topDay = { date: key, net: spend.net };
+    if (spend.net > 0) {
+      monthTotal += spend.net;
+      activeDays++;
+      if (!topDay || spend.net > topDay.net) topDay = { date: key, net: spend.net };
     }
   }
+  const weekCount = gridDays.length / 7;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -156,23 +207,31 @@ export function DailySpendDialog({
           <DialogTitle>Daily spending — {format(month, "MMMM yyyy")}</DialogTitle>
         </DialogHeader>
 
-        {topDay && (
-          <p className="text-sm text-muted-foreground">
-            You spent the most on{" "}
-            <span className="font-medium text-foreground">
-              {format(new Date(`${topDay.date}T00:00:00`), "MMM d")}
-            </span>{" "}
-            — {formatCurrency(topDay.net)}
+        {topDay ? (
+          <div className="grid grid-cols-3 gap-2">
+            <Stat label="Total" value={formatCurrency(monthTotal)} />
+            <Stat label="Avg / spending day" value={formatCurrency(monthTotal / activeDays)} />
+            <Stat
+              label={`Busiest — ${format(new Date(`${topDay.date}T00:00:00`), "MMM d")}`}
+              value={formatCurrency(topDay.net)}
+            />
+          </div>
+        ) : (
+          <p className="py-6 text-center text-sm text-muted-foreground">
+            No spending recorded this month.
           </p>
         )}
 
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-1.5">
           {WEEKDAY_LABELS.map((d) => (
-            <div key={d} className="text-center text-[10px] font-medium text-muted-foreground">
+            <div
+              key={d}
+              className="pb-1 text-center text-[10px] font-medium tracking-wide text-muted-foreground uppercase"
+            >
               {d}
             </div>
           ))}
-          {gridDays.map((date) => {
+          {gridDays.map((date, i) => {
             const key = format(date, "yyyy-MM-dd");
             return (
               <DayCell
@@ -181,10 +240,27 @@ export function DailySpendDialog({
                 inMonth={isSameMonth(date, month)}
                 spend={spendByDay.get(key)}
                 maxNet={maxNet}
+                // The last two rows would push their tooltip past the dialog edge.
+                flipTooltip={Math.floor(i / 7) >= weekCount - 2}
               />
             );
           })}
         </div>
+
+        {topDay && (
+          <div className="flex items-center justify-end gap-1.5 text-[10px] text-muted-foreground">
+            <span>Less</span>
+            <span className="h-3 w-3 rounded-sm border border-border/60" />
+            {HEAT_STEPS.map((step) => (
+              <span
+                key={step.bg}
+                className="h-3 w-3 rounded-sm"
+                style={{ backgroundColor: step.bg }}
+              />
+            ))}
+            <span>More</span>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

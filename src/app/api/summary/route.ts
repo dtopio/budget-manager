@@ -100,11 +100,15 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Recurring rules that are due later this month haven't materialized into real
-  // transactions yet (that only happens on/after their date via /api/recurring/run),
-  // but they're committed spending — count them against the budget now rather than
-  // waiting for the day to arrive. Anything due on/before "now" is already covered
-  // by the actual-transactions query above, since /api/recurring/run runs first.
+  // Recurring rules that haven't materialized into real transactions yet (that only
+  // happens on/after their date via /api/recurring/run) are still committed spending —
+  // count them against the budget now rather than waiting for the day to arrive.
+  //
+  // The schedule is walked from each rule's startDate, not its nextRunDate, because an
+  // occurrence whose run was skipped (nextRunDate advanced past it without a transaction
+  // being written) would otherwise vanish from the month entirely — neither an actual nor
+  // an upcoming. Occurrences that DID materialize are already in the actuals above, so
+  // they're filtered out here by rule + day to avoid double counting.
   const upcomingGroupTotals: Record<"NEEDS" | "WANTS" | "SAVINGS", number> = {
     NEEDS: 0,
     WANTS: 0,
@@ -123,13 +127,24 @@ export async function GET(req: NextRequest) {
     categoryColor: string | null;
   }[] = [];
 
+  const materialized = new Set<string>();
+  for (const t of transactions) {
+    if (t.recurringId) {
+      materialized.add(`${t.recurringId}:${format(t.date, "yyyy-MM-dd")}`);
+    }
+  }
+
   for (const rule of activeRecurring) {
-    let occurrence = rule.nextRunDate;
+    let occurrence = rule.startDate < rule.nextRunDate ? rule.startDate : rule.nextRunDate;
     let guard = 0;
-    while (occurrence <= to && guard < 366) {
+    while (occurrence <= to && guard < 4000) {
       guard++;
       if (rule.endDate && occurrence > rule.endDate) break;
-      if (occurrence >= from && occurrence <= to) {
+      if (
+        occurrence >= from &&
+        occurrence <= to &&
+        !materialized.has(`${rule.id}:${format(occurrence, "yyyy-MM-dd")}`)
+      ) {
         const amount = Number(rule.amount);
         if (rule.type === "INCOME") {
           upcomingIncome += amount;

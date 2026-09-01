@@ -15,6 +15,7 @@ import { SubscriptionsTab } from "@/components/budget/subscriptions-tab";
 import { AddTransactionDialog } from "@/components/budget/add-transaction-dialog";
 import { AddRecurringDialog } from "@/components/budget/add-recurring-dialog";
 import { MonthPicker } from "@/components/budget/month-picker";
+import { ThemeToggle } from "@/components/budget/theme-toggle";
 import {
   SummaryCardsSkeleton,
   ChartCardSkeleton,
@@ -83,6 +84,7 @@ export default function Home() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <MonthPicker month={month} onChange={setMonth} />
+            <ThemeToggle />
             <AddRecurringDialog categories={categories} onCreated={loadData} />
             <AddTransactionDialog categories={categories} onCreated={loadData} />
           </div>

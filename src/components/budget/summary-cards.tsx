@@ -27,7 +27,7 @@ function StatCard({
         <span className="text-sm font-medium text-muted-foreground">{label}</span>
         <span
           className="flex h-9 w-9 items-center justify-center rounded-full"
-          style={{ backgroundColor: `${tint}1f` }}
+          style={{ backgroundColor: `color-mix(in oklch, ${tint} 15%, transparent)` }}
         >
           <Icon className="h-4.5 w-4.5" style={{ color: tint }} />
         </span>
@@ -48,13 +48,13 @@ export function SummaryCards({ summary }: { summary: Summary | null }) {
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <StatCard label="Income" value={income} Icon={ArrowUpRight} tint="#0ca30c" />
-      <StatCard label="Expenses" value={expense} Icon={ArrowDownRight} tint="#d03b3b" />
+      <StatCard label="Income" value={income} Icon={ArrowUpRight} tint="var(--income)" />
+      <StatCard label="Expenses" value={expense} Icon={ArrowDownRight} tint="var(--expense)" />
       <StatCard
         label="Balance"
         value={balance}
         Icon={Wallet}
-        tint={balance >= 0 ? "#0ca30c" : "#d03b3b"}
+        tint={balance >= 0 ? "var(--income)" : "var(--expense)"}
       />
     </div>
   );

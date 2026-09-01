@@ -19,8 +19,8 @@ interface TrendPoint {
   expense: number;
 }
 
-const INCOME_COLOR = "#2a78d6";
-const EXPENSE_COLOR = "#e34948";
+const INCOME_COLOR = "var(--income)";
+const EXPENSE_COLOR = "var(--expense)";
 
 function CustomTooltip({
   active,
