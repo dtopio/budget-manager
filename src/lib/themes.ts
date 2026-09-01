@@ -201,10 +201,11 @@ function tokens(seeds: Seeds, money: MoneySeeds, isDark: boolean) {
   // How far to push a surface toward the text colour for muted fills and borders.
   const lift = (t: number) => mix(surface, fg, t);
 
-  // Low enough that the page's colour wash genuinely shows through the panel — at the
-  // near-opaque values this started at, the blur had nothing to reveal and the effect
-  // was invisible.
+  // Two strengths. Decorative panels (hero cards, the header) can be airy — that is what
+  // makes the blur visible at all. Panels that hold text and form controls cannot: at the
+  // airy value the page shows straight through and contrast collapses.
   const glassAlpha = isDark ? 0.4 : 0.44;
+  const panelAlpha = isDark ? 0.92 : 0.9;
   const entries: Record<string, string> = {
     background: css(bg),
     foreground: css(fg),
@@ -243,10 +244,14 @@ function tokens(seeds: Seeds, money: MoneySeeds, isDark: boolean) {
 
     // Liquid glass: a translucent surface, a bright top edge, and a hairline border.
     "glass-bg": css(surface, glassAlpha),
+    "glass-panel": css(surface, panelAlpha),
+    // Fields sit on top of a glass panel, so they need their own fill — a transparent
+    // input on a translucent surface has no edge at all.
+    "glass-field": isDark ? css(mix(surface, fg, 0.06), 0.85) : css(withL(surface, 1), 0.75),
     "glass-border": isDark ? css(withC(withL(fg, 0.95), 0.01), 0.22) : css(withL(surface, 1), 0.9),
     "glass-highlight": isDark
       ? css(withC(withL(fg, 0.98), 0.01), 0.22)
-      : css(withL(surface, 1), 1),
+      : css(withL(surface, 1), 0.65),
     // A second, dimmer edge for the bottom of a panel — glass catches light on top and
     // shadow underneath; without it the panels read as flat translucent rectangles.
     "glass-shade": isDark ? css(withL(bg, 0.06), 0.5) : css(fg, 0.06),
