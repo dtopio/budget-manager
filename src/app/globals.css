@@ -63,11 +63,23 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* The colour wash lives on its own fixed layer rather than on the body via
+     `background-attachment: fixed`. A fixed-attachment background and backdrop-filter
+     are a bad pair in Chromium: the blurred elements sample a mispositioned copy of it,
+     which surfaces as hard-edged rectangles whenever anything repaints — a hover, a
+     theme swap, a scroll. A real fixed layer composites normally and blurs correctly. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
     background-image:
       radial-gradient(60rem 40rem at 8% -10%, var(--surface-glow-2), transparent 60%),
       radial-gradient(50rem 38rem at 95% 8%, var(--surface-glow-3), transparent 60%),
       radial-gradient(55rem 40rem at 85% 105%, var(--surface-glow-1), transparent 60%);
-    background-attachment: fixed;
   }
   html {
     @apply font-sans;

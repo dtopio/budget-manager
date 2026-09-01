@@ -10,7 +10,11 @@
 const EDGE =
   "shadow-[inset_0_1px_0_0_var(--glass-highlight),inset_0_-1px_0_0_var(--glass-shade),0_16px_40px_-20px_rgb(0_0_0/0.5)]";
 
-const BLUR = "backdrop-blur-2xl backdrop-saturate-[1.6]";
+// Decorative panels sit on a static wash, so a large radius buys nothing visually while
+// costing a full-size backdrop sample per card. The panels that genuinely overlay moving
+// content (dialogs, popovers, the header) keep the heavier blur.
+const BLUR = "backdrop-blur-md backdrop-saturate-[1.6]";
+const BLUR_HEAVY = "backdrop-blur-2xl backdrop-saturate-[1.6]";
 
 /**
  * Decorative panels — hero stat cards, envelopes. Airy enough that the page's colour
@@ -24,7 +28,7 @@ export const GLASS = `bg-[var(--glass-bg)] border border-[var(--glass-border)] $
  * text and form controls, and at the decorative alpha the page behind shows straight
  * through and contrast collapses.
  */
-export const GLASS_PANEL = `bg-[var(--glass-panel)] border border-[var(--glass-border)] ${BLUR} ${EDGE}`;
+export const GLASS_PANEL = `bg-[var(--glass-panel)] border border-[var(--glass-border)] ${BLUR_HEAVY} ${EDGE}`;
 
 /** The sticky header, sitting over scrolling content. */
 export const GLASS_BAR =
