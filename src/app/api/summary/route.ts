@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     return { monthDate, mFrom: startOfMonth(monthDate), mTo: endOfMonth(monthDate) };
   });
 
-  const [transactions, activeRecurring, trendTx] = await Promise.all([
+  const [transactions, activeRecurring, trendTx, savingsRows] = await Promise.all([
     prisma.transaction.findMany({
       where: { date: { gte: from, lte: to } },
       include: { category: true },
@@ -33,7 +33,26 @@ export async function GET(req: NextRequest) {
         })
       )
     ),
+    // The savings pot is cumulative, not monthly: everything ever put in or taken out,
+    // up to the end of the month being viewed. Viewing an earlier month therefore shows
+    // the pot as it stood then, rather than today's figure.
+    prisma.transaction.findMany({
+      where: { fundingSource: "SAVINGS", date: { lte: to } },
+      select: { amount: true, type: true, date: true },
+    }),
   ]);
+
+  let savingsBalance = 0;
+  let savingsSpent = 0;
+  for (const t of savingsRows) {
+    const amount = Number(t.amount);
+    if (t.type === "EXPENSE") {
+      savingsBalance -= amount;
+      if (t.date >= from) savingsSpent += amount;
+    } else {
+      savingsBalance += amount;
+    }
+  }
 
   let totalIncome = 0;
   let totalExpense = 0;
@@ -74,6 +93,9 @@ export async function GET(req: NextRequest) {
 
   for (const t of transactions) {
     const amount = Number(t.amount);
+    // Money moving in or out of savings is a different pot — counting it here would make
+    // "left to spend" and the envelopes reflect money this month never had.
+    if (t.fundingSource === "SAVINGS") continue;
     if (t.type === "INCOME") {
       totalIncome += amount;
     } else if (t.type === "REIMBURSEMENT") {
@@ -91,6 +113,7 @@ export async function GET(req: NextRequest) {
   }
 
   for (const t of reimbursements) {
+    if (t.fundingSource === "SAVINGS") continue;
     const amount = Number(t.amount);
     if (t.categoryId && t.category?.type === "EXPENSE") {
       totalExpense -= amount;
@@ -194,6 +217,7 @@ export async function GET(req: NextRequest) {
     let income = 0;
     let expense = 0;
     for (const t of trendTx[idx]) {
+      if (t.fundingSource === "SAVINGS") continue;
       const amount = Number(t.amount);
       if (t.type === "INCOME") income += amount;
       else if (t.type === "EXPENSE") expense += amount;
@@ -210,6 +234,13 @@ export async function GET(req: NextRequest) {
     totalExpense,
     totalReimbursement,
     balance: totalIncome - totalExpense + totalReimbursement,
+    // What's genuinely left: this month's balance with the recurring bills that are still
+    // to come already taken out, so the headline number doesn't quietly overstate things
+    // days before rent or a subscription lands. Upcoming income is deliberately not added
+    // — money not yet received isn't money you can spend.
+    available: totalIncome - totalExpense + totalReimbursement - upcomingExpense,
+    savingsBalance,
+    savingsSpent,
     byCategory: Array.from(byCategory.values())
       .filter((c) => c.total > 0)
       .sort((a, b) => b.total - a.total),

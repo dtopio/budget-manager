@@ -10,10 +10,15 @@
 const EDGE =
   "shadow-[inset_0_1px_0_0_var(--glass-highlight),inset_0_-1px_0_0_var(--glass-shade),0_16px_40px_-20px_rgb(0_0_0/0.5)]";
 
-// Decorative panels sit on a static wash, so a large radius buys nothing visually while
-// costing a full-size backdrop sample per card. The panels that genuinely overlay moving
-// content (dialogs, popovers, the header) keep the heavier blur.
-const BLUR = "backdrop-blur-md backdrop-saturate-[1.6]";
+// backdrop-filter is used ONLY where something actually moves behind the surface: the
+// sticky header, and dialogs/popovers floating over the page. Cards that merely sit in
+// the layout get translucency and edge lighting instead.
+//
+// This is deliberate, not just a perf choice. A blurred element becomes its own
+// composited layer, and on some GPU/driver combinations those layers show their bounds
+// as a hard-edged rectangle on repaint. That artifact appeared with the glass work and
+// was reported repeatedly; the stat cards gained nothing from blurring a static
+// background, so they no longer ask for a layer at all.
 const BLUR_HEAVY = "backdrop-blur-2xl backdrop-saturate-[1.6]";
 
 /**
@@ -21,7 +26,7 @@ const BLUR_HEAVY = "backdrop-blur-2xl backdrop-saturate-[1.6]";
  * wash reads through them, which is what makes the blur visible at all. Only use where
  * the content is short and high-contrast.
  */
-export const GLASS = `bg-[var(--glass-bg)] border border-[var(--glass-border)] ${BLUR} ${EDGE}`;
+export const GLASS = `bg-[var(--glass-card)] border border-[var(--glass-border)] ${EDGE}`;
 
 /**
  * Content panels — dialogs, popovers, menus. Nearly opaque on purpose: these hold body

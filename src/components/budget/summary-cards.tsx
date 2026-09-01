@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format";
-import { ArrowDownRight, ArrowUpRight, Wallet, type LucideIcon } from "lucide-react";
+import { ArrowDownRight, PiggyBank, Wallet, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GLASS, GLASS_SHEEN } from "@/lib/glass";
 import type { Summary } from "@/lib/types";
@@ -10,12 +10,14 @@ function StatCard({
   value,
   Icon,
   tint,
+  hint,
   valueClassName,
 }: {
   label: string;
   value: number;
   Icon: LucideIcon;
   tint: string;
+  hint?: string;
   valueClassName?: string;
 }) {
   return (
@@ -38,24 +40,44 @@ function StatCard({
       >
         {formatCurrency(value)}
       </div>
+      {hint && <p className="mt-1 text-xs text-muted-foreground tabular-nums">{hint}</p>}
     </Card>
   );
 }
 
 export function SummaryCards({ summary }: { summary: Summary | null }) {
-  const income = summary?.totalIncome ?? 0;
   const expense = summary?.totalExpense ?? 0;
-  const balance = summary?.balance ?? 0;
+  const savings = summary?.savingsBalance ?? 0;
+  const savingsSpent = summary?.savingsSpent ?? 0;
+  // The headline figure is what's actually left after the bills still to come, not the
+  // raw month balance — that number reads as spendable when it isn't.
+  const available = summary?.available ?? 0;
+  const upcoming = summary?.upcomingExpense ?? 0;
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <StatCard label="Income" value={income} Icon={ArrowUpRight} tint="var(--income)" />
+      <StatCard
+        label="Savings"
+        value={savings}
+        Icon={PiggyBank}
+        tint="var(--savings)"
+        hint={
+          savingsSpent > 0
+            ? `${formatCurrency(savingsSpent)} drawn this month`
+            : "across all months"
+        }
+      />
       <StatCard label="Expenses" value={expense} Icon={ArrowDownRight} tint="var(--expense)" />
       <StatCard
-        label="Balance"
-        value={balance}
+        label="Left to spend"
+        value={available}
         Icon={Wallet}
-        tint={balance >= 0 ? "var(--income)" : "var(--expense)"}
+        tint={available >= 0 ? "var(--income)" : "var(--expense)"}
+        hint={
+          upcoming > 0
+            ? `after ${formatCurrency(upcoming)} of bills still due`
+            : "no bills left this month"
+        }
       />
     </div>
   );

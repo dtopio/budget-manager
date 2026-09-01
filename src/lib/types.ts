@@ -1,6 +1,7 @@
 export type TransactionType = "INCOME" | "EXPENSE" | "REIMBURSEMENT";
 export type RecurrenceFrequency = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
 export type BudgetGroup = "NEEDS" | "WANTS" | "SAVINGS";
+export type FundingSource = "BALANCE" | "SAVINGS";
 
 export interface Category {
   id: string;
@@ -16,6 +17,7 @@ export interface Transaction {
   id: string;
   amount: string;
   type: TransactionType;
+  fundingSource: FundingSource;
   note: string | null;
   date: string;
   categoryId: string | null;
@@ -50,6 +52,12 @@ export interface Summary {
   totalExpense: number;
   totalReimbursement: number;
   balance: number;
+  /** balance minus recurring expenses still scheduled this month. */
+  available: number;
+  /** Cumulative savings pot through the end of the selected month. */
+  savingsBalance: number;
+  /** Savings-funded spending within the selected month. */
+  savingsSpent: number;
   byCategory: CategoryBreakdown[];
   trend: { month: string; income: number; expense: number }[];
   budgetGroups: {

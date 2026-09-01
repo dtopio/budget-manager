@@ -36,8 +36,10 @@ export function ThemeToggle() {
                   type="button"
                   onClick={() => setPalette(t.id)}
                   className={cn(
-                    "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors",
-                    selected ? "bg-accent text-accent-foreground" : "hover:bg-accent/60"
+                    "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
+                    selected
+                      ? "bg-[color-mix(in_oklch,var(--primary)_18%,transparent)] font-medium text-foreground ring-1 ring-[color-mix(in_oklch,var(--primary)_45%,transparent)]"
+                      : "text-foreground/85 hover:bg-[color-mix(in_oklch,var(--foreground)_7%,transparent)]"
                   )}
                 >
                   <span className="flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-border/60">
@@ -46,7 +48,7 @@ export function ThemeToggle() {
                     ))}
                   </span>
                   <span className="flex-1 text-left">{t.label}</span>
-                  {selected && <Check className="h-3.5 w-3.5" />}
+                  {selected && <Check className="h-3.5 w-3.5 text-[var(--primary)]" />}
                 </button>
               );
             })}

@@ -235,6 +235,14 @@ export function TransactionList({
                                   {label}
                                 </Badge>
                               )}
+                              {t.fundingSource === "SAVINGS" && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-[color-mix(in_oklch,var(--savings)_45%,transparent)] text-[10px] font-normal text-[var(--savings)]"
+                                >
+                                  {t.type === "INCOME" ? "to savings" : "from savings"}
+                                </Badge>
+                              )}
                             </div>
                             <div className="truncate text-xs text-muted-foreground">
                               {!isSub && t.note ? `${t.note} · ` : ""}

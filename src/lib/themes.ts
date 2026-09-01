@@ -130,7 +130,7 @@ export const THEMES: Theme[] = [
       surface: "#17332B",
       fg: "#EAF4EE",
       primary: "#B9F24D",
-      accent: "#A78BFA",
+      accent: "#7FD98F",
     },
     money: {
       light: {
@@ -205,6 +205,9 @@ function tokens(seeds: Seeds, money: MoneySeeds, isDark: boolean) {
   // makes the blur visible at all. Panels that hold text and form controls cannot: at the
   // airy value the page shows straight through and contrast collapses.
   const glassAlpha = isDark ? 0.4 : 0.44;
+  // Layout cards are translucent but not blurred (see lib/glass.ts), so they carry a bit
+  // more body than the header — without a blur behind it, 40% just looks washed out.
+  const cardAlpha = isDark ? 0.66 : 0.7;
   const panelAlpha = isDark ? 0.92 : 0.9;
   const entries: Record<string, string> = {
     background: css(bg),
@@ -244,6 +247,7 @@ function tokens(seeds: Seeds, money: MoneySeeds, isDark: boolean) {
 
     // Liquid glass: a translucent surface, a bright top edge, and a hairline border.
     "glass-bg": css(surface, glassAlpha),
+    "glass-card": css(surface, cardAlpha),
     "glass-panel": css(surface, panelAlpha),
     // Fields sit on top of a glass panel, so they need their own fill — a transparent
     // input on a translucent surface has no edge at all.

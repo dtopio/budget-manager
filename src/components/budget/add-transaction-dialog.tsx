@@ -26,7 +26,7 @@ import { Plus } from "lucide-react";
 import { getIcon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { SUBSCRIPTION_LABELS, isSubscriptionCategory } from "@/lib/subscription-labels";
-import type { Category, TransactionType } from "@/lib/types";
+import type { Category, FundingSource, TransactionType } from "@/lib/types";
 
 export function AddTransactionDialog({
   categories,
@@ -43,6 +43,7 @@ export function AddTransactionDialog({
   // Local calendar day, not UTC: toISOString() would show yesterday for anyone east of
   // UTC before their offset has elapsed (e.g. 02:00 in UTC+7).
   const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [fundingSource, setFundingSource] = useState<FundingSource>("BALANCE");
   const [submitting, setSubmitting] = useState(false);
 
   const filteredCategories = categories.filter(
@@ -67,6 +68,7 @@ export function AddTransactionDialog({
           type,
           categoryId: categoryId || null,
           note: note || null,
+          fundingSource,
           date: new Date(date).toISOString(),
         }),
       });
@@ -77,6 +79,7 @@ export function AddTransactionDialog({
       setAmount("");
       setNote("");
       setCategoryId("");
+      setFundingSource("BALANCE");
       setOpen(false);
       onCreated();
     } catch {
@@ -178,6 +181,33 @@ export function AddTransactionDialog({
               onChange={(e) => setDate(e.target.value)}
             />
           </div>
+
+          {type !== "REIMBURSEMENT" && (
+            <div className="space-y-2">
+              <Label>{type === "INCOME" ? "Deposit into" : "Pay from"}</Label>
+              <Select
+                value={fundingSource}
+                onValueChange={(v) => setFundingSource(v as FundingSource)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue>
+                    {(v: string) => (v === "SAVINGS" ? "Savings" : "Balance")}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BALANCE">Balance</SelectItem>
+                  <SelectItem value="SAVINGS">Savings</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {fundingSource === "SAVINGS"
+                  ? type === "INCOME"
+                    ? "Goes straight into your savings pot — not counted as spendable income this month."
+                    : "Comes out of your savings pot — it won't touch this month's envelopes."
+                  : "Counts towards this month's income, expenses and envelopes."}
+              </p>
+            </div>
+          )}
 
           {showSubscriptionPicker && (
             <div className="space-y-2">
