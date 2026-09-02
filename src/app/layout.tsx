@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Instrument_Sans, Instrument_Serif, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "@/components/theme-provider";
 import { buildThemeCss, DEFAULT_THEME } from "@/lib/themes";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const sans = Instrument_Sans({
+  variable: "--font-sans-face",
   subsets: ["latin"],
 });
 
+// Titles only. A display serif against the grotesque is what stops a dashboard of
+// rounded rectangles from reading as a template.
+const serif = Instrument_Serif({
+  variable: "--font-display-face",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+  variable: "--font-mono-face",
   subsets: ["latin"],
 });
 
@@ -28,7 +36,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${sans.variable} ${serif.variable} ${geistMono.variable} h-full antialiased`}
       data-palette={DEFAULT_THEME}
       suppressHydrationWarning
     >

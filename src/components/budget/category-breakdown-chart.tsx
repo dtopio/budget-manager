@@ -22,11 +22,14 @@ function CustomTooltip({
   if (!active || !payload?.length) return null;
   const item = payload[0];
   return (
-    <div className="rounded-md border bg-popover px-3 py-2 text-sm shadow-md">
+    <div className="rounded-xl border border-border/70 bg-popover px-3 py-2.5 text-sm shadow-[var(--edge-top),var(--elev-3)]">
       <div className="flex items-center gap-2">
         <span
           className="h-2.5 w-2.5 rounded-full"
-          style={{ backgroundColor: item.payload.color }}
+          style={{
+            backgroundColor: item.payload.color,
+            boxShadow: `0 0 0 3px color-mix(in oklch, ${item.payload.color} 18%, transparent)`,
+          }}
         />
         <span className="font-medium text-popover-foreground">{item.name}</span>
       </div>
@@ -63,17 +66,18 @@ export function CategoryBreakdownChart({
           </p>
         ) : (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="mx-auto h-55 w-55 shrink-0">
+            <div className="relative mx-auto h-55 w-55 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={data}
                     dataKey="total"
                     nameKey="name"
-                    innerRadius={60}
+                    innerRadius={68}
                     outerRadius={100}
                     paddingAngle={2}
-                    strokeWidth={2}
+                    cornerRadius={4}
+                    strokeWidth={3}
                     stroke="var(--card)"
                     isAnimationActive={false}
                   >
@@ -84,6 +88,15 @@ export function CategoryBreakdownChart({
                   <Tooltip content={<CustomTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
+              {/* The hole is the obvious place for the figure the ring is dividing up. */}
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-[0.625rem] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                  Total
+                </span>
+                <span className="mt-0.5 text-xl font-semibold tracking-tight tabular-nums">
+                  {formatCurrency(total)}
+                </span>
+              </div>
             </div>
             <ul className="flex-1 space-y-2">
               {data.map((entry) => {

@@ -55,22 +55,30 @@ function Envelope({
   const overBudget = remaining < 0;
 
   return (
-    <div className={cn("space-y-2 rounded-xl p-4", GLASS)}>
+    <div className={cn("space-y-2.5 rounded-xl p-4", GLASS)}>
       <div className="flex items-center gap-2">
         <span
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full shadow-[inset_0_1px_0_0_oklch(1_0_0/0.25)]"
           style={{ backgroundColor: tint(meta.color, 14) }}
         >
-          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: meta.color }} />
+          <span
+            className="h-2 w-2 rounded-full"
+            style={{
+              backgroundColor: meta.color,
+              boxShadow: `0 0 0 3px ${tint(meta.color, 18)}`,
+            }}
+          />
         </span>
         <span className="text-sm font-medium">{meta.label}</span>
-        <span className="text-xs text-muted-foreground">{targetPct}% of income</span>
+        <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+          {targetPct}%
+        </span>
       </div>
 
       <div>
         <div
           className={cn(
-            "text-2xl font-semibold tracking-tight tabular-nums",
+            "text-2xl font-semibold tracking-[-0.03em] tabular-nums",
             overBudget && "text-expense"
           )}
         >
@@ -83,20 +91,29 @@ function Envelope({
         </p>
       </div>
 
-      <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+      {/* Recessed track, filled bar raised out of it. */}
+      <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted shadow-[inset_0_1px_2px_0_oklch(0_0_0/0.1)]">
         <div
-          className="absolute top-0 left-0 h-full rounded-full"
+          className="absolute top-0 left-0 h-full rounded-full shadow-[inset_0_1px_0_0_oklch(1_0_0/0.25)]"
           style={{
             width: `${Math.min(actualPct, 100)}%`,
-            backgroundColor: overBudget ? "var(--expense)" : meta.color,
+            backgroundImage: `linear-gradient(180deg, color-mix(in oklch, ${
+              overBudget ? "var(--expense)" : meta.color
+            }, white 12%), ${overBudget ? "var(--expense)" : meta.color})`,
           }}
         />
+        {/* Scheduled-but-not-yet-charged spend, hatched so it reads as provisional. */}
         <div
-          className="absolute top-0 h-full rounded-full opacity-40"
+          className="absolute top-0 h-full rounded-full opacity-45"
           style={{
             left: `${Math.min(actualPct, 100)}%`,
             width: `${Math.min(upcomingPct, 100 - Math.min(actualPct, 100))}%`,
-            backgroundColor: overBudget ? "var(--expense)" : meta.color,
+            backgroundImage: `repeating-linear-gradient(115deg, ${
+              overBudget ? "var(--expense)" : meta.color
+            } 0 4px, transparent 4px 8px)`,
+            backgroundColor: `color-mix(in oklch, ${
+              overBudget ? "var(--expense)" : meta.color
+            } 35%, transparent)`,
           }}
         />
       </div>

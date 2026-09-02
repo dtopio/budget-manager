@@ -39,13 +39,21 @@ export function AddRecurringDialog({
   categories,
   onCreated,
   recurring,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+  hideTrigger,
 }: {
   categories: Category[];
   onCreated: () => void;
   recurring?: RecurringTransaction;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }) {
   const isEdit = !!recurring;
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = setControlledOpen ?? setUncontrolledOpen;
   const [type, setType] = useState<TransactionType>(recurring?.type ?? "EXPENSE");
   const [amount, setAmount] = useState(recurring?.amount ?? "");
   const [categoryId, setCategoryId] = useState<string>(recurring?.categoryId ?? "");
@@ -128,16 +136,17 @@ export function AddRecurringDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {isEdit ? (
-        <DialogTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8" />}>
-          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-        </DialogTrigger>
-      ) : (
-        <DialogTrigger render={<Button variant="outline" />}>
-          <Plus className="h-4 w-4" />
-          Add recurring
-        </DialogTrigger>
-      )}
+      {!hideTrigger &&
+        (isEdit ? (
+          <DialogTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8" />}>
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+          </DialogTrigger>
+        ) : (
+          <DialogTrigger render={<Button variant="outline" />}>
+            <Plus className="h-4 w-4" />
+            Add recurring
+          </DialogTrigger>
+        ))}
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>

@@ -6,34 +6,43 @@
 // floating surfaces — the header, dialogs, popovers and the hero cards. Putting them on
 // list rows would blur a new layer per row and drop frames while scrolling.
 
-// Light catches the top edge and pools in shadow underneath.
+// Light catches the top edge and pools in shadow underneath. The cast shadow comes from
+// the shared elevation scale in globals.css so glass and solid cards sit in the same
+// lighting rather than each inventing their own.
 const EDGE =
-  "shadow-[inset_0_1px_0_0_var(--glass-highlight),inset_0_-1px_0_0_var(--glass-shade),0_16px_40px_-20px_rgb(0_0_0/0.5)]";
+  "shadow-[inset_0_1px_0_0_var(--glass-highlight),inset_0_-1px_0_0_var(--glass-shade),var(--elev-2)]";
 
-// backdrop-filter is used ONLY where something actually moves behind the surface: the
-// sticky header, and dialogs/popovers floating over the page. Cards that merely sit in
-// the layout get translucency and edge lighting instead.
+// backdrop-filter is now used in exactly one place: the sticky header, which is the only
+// surface with content genuinely scrolling behind it.
 //
 // This is deliberate, not just a perf choice. A blurred element becomes its own
 // composited layer, and on some GPU/driver combinations those layers show their bounds
 // as a hard-edged rectangle on repaint. That artifact appeared with the glass work and
-// was reported repeatedly; the stat cards gained nothing from blurring a static
-// background, so they no longer ask for a layer at all.
-const BLUR_HEAVY = "backdrop-blur-2xl backdrop-saturate-[1.6]";
+// was reported repeatedly — first on the stat cards, then on the month picker whenever a
+// month was hovered. Neither was blurring anything that moved, so neither asks for a
+// layer any more.
 
 /**
  * Decorative panels — hero stat cards, envelopes. Airy enough that the page's colour
  * wash reads through them, which is what makes the blur visible at all. Only use where
  * the content is short and high-contrast.
  */
-export const GLASS = `bg-[var(--glass-card)] border border-[var(--glass-border)] ${EDGE}`;
+export const GLASS =
+  "bg-[var(--glass-card)] bg-[linear-gradient(180deg,var(--glass-tint-top),var(--glass-tint-bottom))] " +
+  `border border-[var(--glass-border)] ${EDGE}`;
 
 /**
- * Content panels — dialogs, popovers, menus. Nearly opaque on purpose: these hold body
- * text and form controls, and at the decorative alpha the page behind shows straight
- * through and contrast collapses.
+ * Content panels — dialogs, popovers, menus. Opaque on purpose: these hold body text and
+ * form controls, and at a decorative alpha the page behind shows straight through and
+ * contrast collapses.
+ *
+ * Deliberately NOT blurred, for the same reason the stat cards aren't. A backdrop-filter
+ * makes the panel its own composited layer, and every repaint inside it — hovering a
+ * month in the picker, moving through a menu — makes Chromium re-sample the backdrop and
+ * flash the layer's bounds as a hard-edged rectangle over the page behind. The panel is
+ * opaque, so there was never anything to see through it anyway.
  */
-export const GLASS_PANEL = `bg-[var(--glass-panel)] border border-[var(--glass-border)] ${BLUR_HEAVY} ${EDGE}`;
+export const GLASS_PANEL = `bg-[var(--glass-panel)] border border-[var(--glass-border)] ${EDGE}`;
 
 /** The sticky header, sitting over scrolling content. */
 export const GLASS_BAR =

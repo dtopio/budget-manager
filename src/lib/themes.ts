@@ -60,22 +60,24 @@ export const THEMES: Theme[] = [
       primary: "#8B84F0",
       accent: "#9C95F5",
     },
+    // Money colours sit one step back from full saturation. A pure #0C0 green next to a
+    // pure red is a traffic light, and it drags every chart it appears in down with it.
     money: {
       light: {
-        income: "#0CA30C",
-        expense: "#D03B3B",
-        transfer: "#2A78D6",
-        needs: "#2A78D6",
-        wants: "#EB6834",
-        savings: "#1BAF7A",
+        income: "#1B8F55",
+        expense: "#C4483F",
+        transfer: "#2F6FC4",
+        needs: "#2F6FC4",
+        wants: "#DC7739",
+        savings: "#12967A",
       },
       dark: {
-        income: "#4ED44E",
-        expense: "#F0706F",
-        transfer: "#6CA8EC",
-        needs: "#6CA8EC",
-        wants: "#F5945F",
-        savings: "#4FD3A5",
+        income: "#5FC98D",
+        expense: "#E97C74",
+        transfer: "#7FADE8",
+        needs: "#7FADE8",
+        wants: "#EDA070",
+        savings: "#4FC9AB",
       },
     },
   },
@@ -152,38 +154,42 @@ export const THEMES: Theme[] = [
     },
   },
   {
-    id: "violet",
-    label: "Violet",
+    // Hanami, not bubblegum: the ground is a paper white with the faintest blush, the
+    // ink is a warm near-black, and the pink is spent only on the primary and the glow.
+    // The money colours stay leaf-green / berry-red / dusk-blue so the palette reads as
+    // a blossom against a sky rather than a wall of pink.
+    id: "sakura",
+    label: "Sakura",
     light: {
-      bg: "#F1EDFD",
+      bg: "#FBF4F5",
       surface: "#FFFFFF",
-      fg: "#1B1235",
-      primary: "#5B3FE0",
-      accent: "#8B6BFF",
+      fg: "#2B1E23",
+      primary: "#B14C79",
+      accent: "#F0A8C7",
     },
     dark: {
-      bg: "#110B26",
-      surface: "#1C1442",
-      fg: "#F0ECFF",
-      primary: "#7C5CFF",
-      accent: "#A78BFA",
+      bg: "#1A1215",
+      surface: "#241A1E",
+      fg: "#F5E8EC",
+      primary: "#E28FB0",
+      accent: "#EFA8C4",
     },
     money: {
       light: {
-        income: "#2FB57A",
-        expense: "#F2555A",
-        transfer: "#8B6BFF",
-        needs: "#8B6BFF",
-        wants: "#F2555A",
-        savings: "#2FB57A",
+        income: "#4C9B6C",
+        expense: "#C84B4B",
+        transfer: "#5A76B4",
+        needs: "#5A76B4",
+        wants: "#C84B4B",
+        savings: "#4C9B6C",
       },
       dark: {
-        income: "#4FD7A0",
-        expense: "#FF7B80",
-        transfer: "#A78BFA",
-        needs: "#A78BFA",
-        wants: "#FF9F6B",
-        savings: "#4FD7A0",
+        income: "#7ECB9B",
+        expense: "#E8878A",
+        transfer: "#93ACE0",
+        needs: "#93ACE0",
+        wants: "#E8878A",
+        savings: "#7ECB9B",
       },
     },
   },
@@ -208,7 +214,10 @@ function tokens(seeds: Seeds, money: MoneySeeds, isDark: boolean) {
   // Layout cards are translucent but not blurred (see lib/glass.ts), so they carry a bit
   // more body than the header — without a blur behind it, 40% just looks washed out.
   const cardAlpha = isDark ? 0.66 : 0.7;
-  const panelAlpha = isDark ? 0.92 : 0.9;
+  // Menus and dialogs are no longer blurred (see lib/glass.ts), so the last of the
+  // translucency has to go too — without a blur behind it, 10% of the page bleeding
+  // through a menu just reads as dirty text.
+  const panelAlpha = 1;
   const entries: Record<string, string> = {
     background: css(bg),
     foreground: css(fg),
@@ -248,6 +257,11 @@ function tokens(seeds: Seeds, money: MoneySeeds, isDark: boolean) {
     // Liquid glass: a translucent surface, a bright top edge, and a hairline border.
     "glass-bg": css(surface, glassAlpha),
     "glass-card": css(surface, cardAlpha),
+    // A surface lit from above is brighter at the top than the bottom. The gradient is
+    // only a couple of percent — enough for the eye to read a face, not enough to see as
+    // a gradient — and it is what separates a panel from a flat filled rectangle.
+    "glass-tint-top": isDark ? css(withL(surface, surface.l + 0.02), 0.5) : css(withL(surface, 1), 0.5),
+    "glass-tint-bottom": isDark ? css(withL(bg, bg.l - 0.01), 0.18) : css(fg, 0.022),
     "glass-panel": css(surface, panelAlpha),
     // Fields sit on top of a glass panel, so they need their own fill — a transparent
     // input on a translucent surface has no edge at all.

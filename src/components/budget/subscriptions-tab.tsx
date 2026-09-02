@@ -1,11 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { CalendarClock, MoreVertical, Pause, Pencil, Play, Trash2 } from "lucide-react";
 import { getIcon } from "@/lib/icons";
 import { formatCurrency } from "@/lib/format";
 import { GLASS, GLASS_SHEEN } from "@/lib/glass";
@@ -45,9 +53,12 @@ export function SubscriptionsTab({
   categories: Category[];
   onChanged: () => void;
 }) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+
   const subs = recurring.filter(
     (r) => r.type === "EXPENSE" && isSubscriptionCategory(r.category?.name)
   );
+  const editingRecurring = subs.find((r) => r.id === editingId);
 
   const monthlyTotal = subs
     .filter((r) => r.active)
@@ -114,63 +125,86 @@ export function SubscriptionsTab({
                 const color = r.category?.color ?? "var(--muted-foreground)";
                 const monthlyCost = Number(r.amount) * MONTHLY_EQUIVALENT[r.frequency];
                 return (
-                  <li key={r.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                  <li key={r.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
                     <span
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+                      className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-[inset_0_1px_0_0_oklch(1_0_0/0.25)]"
                       style={{
-                        backgroundColor: `color-mix(in oklch, ${color} 12%, transparent)`,
+                        background: `linear-gradient(160deg, color-mix(in oklch, ${color} 20%, transparent), color-mix(in oklch, ${color} 9%, transparent))`,
                       }}
                     >
                       <Icon className="h-4.5 w-4.5" style={{ color }} />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 truncate text-sm font-medium">
-                        {label ?? r.category?.name ?? "Subscription"}
-                        <Badge variant="secondary" className="text-xs">
-                          {frequencyLabel[r.frequency]}
-                        </Badge>
-                        {!r.active && (
-                          <Badge variant="outline" className="text-xs">
-                            Paused
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex min-w-0 items-center gap-1.5">
+                          <span className="truncate text-sm font-medium">
+                            {label ?? r.category?.name ?? "Subscription"}
+                          </span>
+                          <Badge variant="secondary" className="shrink-0 text-xs">
+                            {frequencyLabel[r.frequency]}
                           </Badge>
-                        )}
+                          <Badge
+                            variant="outline"
+                            className="shrink-0 text-xs"
+                            style={
+                              r.active
+                                ? { color: "var(--income)", borderColor: "var(--income)" }
+                                : undefined
+                            }
+                          >
+                            {r.active ? "Active" : "Paused"}
+                          </Badge>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <div className="text-sm font-semibold tabular-nums">
+                            {formatCurrency(Number(r.amount))}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            / {frequencyLabel[r.frequency].toLowerCase()}
+                          </div>
+                        </div>
                       </div>
-                      <div className="truncate text-xs text-muted-foreground">
-                        Next: {format(new Date(r.nextRunDate), "MMM d, yyyy")}
-                        {detail ? ` · ${detail}` : ""}
-                        {r.frequency !== "MONTHLY" &&
-                          ` · ${formatCurrency(monthlyCost)}/mo equiv.`}
+                      <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                        <CalendarClock className="h-3 w-3 shrink-0" />
+                        <span className="truncate">
+                          Next {format(new Date(r.nextRunDate), "MMM d, yyyy")}
+                          {detail ? ` · ${detail}` : ""}
+                          {r.frequency !== "MONTHLY" &&
+                            ` · ${formatCurrency(monthlyCost)}/mo equiv.`}
+                        </span>
                       </div>
                     </div>
-                    <div className="shrink-0 text-right">
-                      <div className="text-sm font-semibold tabular-nums">
-                        {formatCurrency(Number(r.amount))}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        / {frequencyLabel[r.frequency].toLowerCase()}
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="shrink-0 text-xs"
-                      onClick={() => toggleActive(r.id, r.active)}
-                    >
-                      {r.active ? "Pause" : "Resume"}
-                    </Button>
-                    <AddRecurringDialog
-                      categories={categories}
-                      recurring={r}
-                      onCreated={onChanged}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={() => handleDelete(r.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-muted-foreground" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" />
+                        }
+                      >
+                        <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => toggleActive(r.id, r.active)}>
+                          {r.active ? (
+                            <Pause className="h-4 w-4" />
+                          ) : (
+                            <Play className="h-4 w-4" />
+                          )}
+                          {r.active ? "Pause" : "Resume"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEditingId(r.id)}>
+                          <Pencil className="h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={() => handleDelete(r.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </li>
                 );
               })}
@@ -178,6 +212,16 @@ export function SubscriptionsTab({
           )}
         </CardContent>
       </Card>
+      {editingRecurring && (
+        <AddRecurringDialog
+          categories={categories}
+          recurring={editingRecurring}
+          onCreated={onChanged}
+          hideTrigger
+          open={!!editingId}
+          onOpenChange={(next) => setEditingId(next ? editingId : null)}
+        />
+      )}
     </div>
   );
 }

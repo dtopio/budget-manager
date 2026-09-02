@@ -58,8 +58,10 @@ function categoryGlyph(iconName: string, color: string) {
   const Icon = getIcon(iconName);
   return (
     <span
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-      style={{ backgroundColor: `color-mix(in oklch, ${color} 12%, transparent)` }}
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full shadow-[inset_0_1px_0_0_oklch(1_0_0/0.25)]"
+      style={{
+        background: `linear-gradient(160deg, color-mix(in oklch, ${color} 20%, transparent), color-mix(in oklch, ${color} 9%, transparent))`,
+      }}
     >
       <Icon className="h-4 w-4" style={{ color }} />
     </span>

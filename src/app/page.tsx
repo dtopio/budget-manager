@@ -79,10 +79,10 @@ export default function Home() {
       <header className={cn("sticky top-0 z-40 border-b", GLASS_BAR)}>
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/70 text-primary-foreground shadow-sm shadow-primary/30">
-              <Wallet className="h-5 w-5" />
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-b from-[color-mix(in_oklch,var(--primary),white_14%)] to-primary text-primary-foreground shadow-[inset_0_1px_0_0_oklch(1_0_0/0.35),var(--elev-1),0_6px_14px_-8px_var(--primary)]">
+              <Wallet className="h-[1.15rem] w-[1.15rem]" />
             </span>
-            <h1 className="text-xl font-semibold tracking-tight">Budget Manager</h1>
+            <h1 className="font-heading text-[1.4rem] leading-none">Budget Manager</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <MonthPicker month={month} onChange={setMonth} />
