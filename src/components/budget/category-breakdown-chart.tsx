@@ -65,16 +65,16 @@ export function CategoryBreakdownChart({
             No expenses this month yet.
           </p>
         ) : (
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="relative mx-auto h-55 w-55 shrink-0">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-5">
+            <div className="relative mx-auto h-44 w-44 shrink-0 sm:h-48 sm:w-48">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={data}
                     dataKey="total"
                     nameKey="name"
-                    innerRadius={68}
-                    outerRadius={100}
+                    innerRadius="68%"
+                    outerRadius="99%"
                     paddingAngle={2}
                     cornerRadius={4}
                     strokeWidth={3}
@@ -98,25 +98,28 @@ export function CategoryBreakdownChart({
                 </span>
               </div>
             </div>
-            <ul className="flex-1 space-y-2">
+            {/* Capped rather than flex-1: stretched across a wide card, `justify-between`
+                drags the figures to the far edge and they stop reading as belonging to
+                the label beside them. */}
+            <ul className="w-full max-w-xs space-y-2">
               {data.map((entry) => {
                 const pct = total > 0 ? (entry.total / total) * 100 : 0;
                 return (
                   <li
                     key={entry.categoryId ?? entry.name}
-                    className="flex items-center justify-between gap-3 text-sm"
+                    className="grid grid-cols-[0.625rem_1fr_auto_2.25rem] items-center gap-x-2.5 text-sm"
                   >
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span
-                        className="h-2.5 w-2.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: entry.color }}
-                      />
-                      <span className="truncate">{entry.name}</span>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2 tabular-nums text-muted-foreground">
-                      <span>{formatCurrency(entry.total)}</span>
-                      <span className="w-10 text-right">{pct.toFixed(0)}%</span>
-                    </div>
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: entry.color }}
+                    />
+                    <span className="truncate">{entry.name}</span>
+                    <span className="tabular-nums text-muted-foreground">
+                      {formatCurrency(entry.total)}
+                    </span>
+                    <span className="text-right tabular-nums text-muted-foreground">
+                      {pct.toFixed(0)}%
+                    </span>
                   </li>
                 );
               })}

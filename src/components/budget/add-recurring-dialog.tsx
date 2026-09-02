@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil } from "lucide-react";
+import { Repeat, Pencil } from "lucide-react";
 import { getIcon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { SUBSCRIPTION_LABELS, isSubscriptionCategory } from "@/lib/subscription-labels";
@@ -142,9 +142,9 @@ export function AddRecurringDialog({
             <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
           </DialogTrigger>
         ) : (
-          <DialogTrigger render={<Button variant="outline" />}>
-            <Plus className="h-4 w-4" />
-            Add recurring
+          <DialogTrigger render={<Button variant="outline" aria-label="Add recurring" />}>
+            <Repeat className="h-4 w-4" />
+            <span className="hidden sm:inline">Add recurring</span>
           </DialogTrigger>
         ))}
       <DialogContent className="sm:max-w-lg">

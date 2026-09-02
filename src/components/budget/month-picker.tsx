@@ -70,14 +70,16 @@ function MonthGrid({
 export function MonthPicker({
   month,
   onChange,
+  className,
 }: {
   month: Date;
   onChange: (month: Date) => void;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex items-center gap-1">
+    <div className={cn("flex items-center gap-1", className)}>
       <Button
         variant="outline"
         size="icon"
@@ -89,7 +91,10 @@ export function MonthPicker({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           render={
-            <Button variant="outline" className="h-8 w-36 justify-center gap-1.5 font-medium" />
+            <Button
+              variant="outline"
+              className="h-8 min-w-0 flex-1 justify-center gap-1.5 font-medium sm:w-36 sm:flex-none"
+            />
           }
         >
           <span className="tabular-nums">{format(month, "MMMM yyyy")}</span>

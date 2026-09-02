@@ -91,9 +91,9 @@ export function AddTransactionDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button />}>
+      <DialogTrigger render={<Button aria-label="Add transaction" />}>
         <Plus className="h-4 w-4" />
-        Add transaction
+        <span className="hidden sm:inline">Add transaction</span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
